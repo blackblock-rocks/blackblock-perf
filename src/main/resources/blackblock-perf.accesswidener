@@ -1,0 +1,3 @@
+accessWidener	v2	named
+mutable field net/minecraft/server/world/ServerChunkManager serverThread Ljava/lang/Thread;
+mutable field net/minecraft/world/World thread Ljava/lang/Thread;
