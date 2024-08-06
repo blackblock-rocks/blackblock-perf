@@ -2,8 +2,11 @@ package rocks.blackblock.perf.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.network.packet.s2c.play.WorldTimeUpdateS2CPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,6 +31,8 @@ public abstract class MinecraftServerMixin {
     @Shadow public abstract Iterable<ServerWorld> getWorlds();
 
     @Shadow private int ticks;
+
+    @Shadow private PlayerManager playerManager;
 
     /**
      * Returns an empty iterator to stop {@code MinecraftServer#tickWorlds}
@@ -79,7 +84,12 @@ public abstract class MinecraftServerMixin {
             BlackblockThreads.attachToThread(Thread.currentThread(), world);
 
             if (this.ticks % 20 == 0) {
-                // Send time update?
+                WorldTimeUpdateS2CPacket packet = new WorldTimeUpdateS2CPacket(
+                        world.getTimeOfDay(),
+                        world.getTime(),
+                        world.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)
+                );
+                this.playerManager.sendToDimension(packet, world.getRegistryKey());
             }
 
             BlackblockThreads.swapThreadsAndRun(() -> {
@@ -101,7 +111,7 @@ public abstract class MinecraftServerMixin {
             return;
         }
 
-        crash.report("Exception ticking world (asynchronously)");
+        crash.crash("Exception ticking world (asynchronously)");
     }
 
     /**
