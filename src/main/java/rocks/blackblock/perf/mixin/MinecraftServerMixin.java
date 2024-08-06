@@ -79,11 +79,14 @@ public abstract class MinecraftServerMixin {
         // Get all the worlds to tick
         Iterable<ServerWorld> worlds = this.getWorlds();
 
+        // Is this a new second?
+        boolean is_new_second = this.ticks % 20 == 0;
+
         // Tick all the worlds on the thread pool
         BlackblockThreads.THREAD_POOL.execute(worlds, world -> {
             BlackblockThreads.attachToThread(Thread.currentThread(), world);
 
-            if (this.ticks % 20 == 0) {
+            if (is_new_second) {
                 WorldTimeUpdateS2CPacket packet = new WorldTimeUpdateS2CPacket(
                         world.getTimeOfDay(),
                         world.getTime(),
