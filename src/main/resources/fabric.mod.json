@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "blackblock-perf",
+	"version": "${version}",
+	"name": "Blackblock Perf",
+	"description": "Performance optimizations for Minecraft",
+	"authors": [
+		"Jelle De Loecker"
+	],
+	"contact": {
+		"homepage": "https://blackblock.rocks/",
+		"sources": "https://github.com/blackblock-rocks/blackblock-perf"
+	},
+	"license": "GPL3",
+	"icon": "assets/blackblock/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"rocks.blackblock.perf.BlackblockPerf"
+		]
+	},
+	"custom": {
+		"loom:injected_interfaces": {
+			"net/minecraft/server/world/ServerChunkManager": ["rocks/blackblock/perf/thread/WithMutableThread"],
+			"net/minecraft/world/World": ["rocks/blackblock/perf/thread/WithMutableThread"]
+		}
+	},
+	"accessWidener": "blackblock-perf.accesswidener",
+	"mixins": [
+		"blackblock-perf.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.11",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		
+	}
+}
