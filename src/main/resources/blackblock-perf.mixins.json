@@ -1,13 +1,14 @@
 {
-	"required": true,
-	"package": "rocks.blackblock.perf.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"MinecraftServerMixin",
-		"ServerChunkManagerMixin",
-		"WorldMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+    "required": true,
+    "package": "rocks.blackblock.perf.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "EntityMixin",
+        "MinecraftServerMixin",
+        "ServerChunkManagerMixin",
+        "WorldMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
 	}
 }
