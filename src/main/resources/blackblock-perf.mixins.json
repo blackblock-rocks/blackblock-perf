@@ -5,6 +5,7 @@
     "mixins": [
         "EntityMixin",
         "MinecraftServerMixin",
+        "RedStoneWireBlockMixin",
         "ServerChunkManagerMixin",
         "WorldMixin"
     ],
