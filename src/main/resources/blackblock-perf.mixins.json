@@ -10,7 +10,10 @@
         "ServerChunkManagerMixin",
         "WorldAccessMixin",
         "WorldAccessor",
-        "WorldMixin"
+        "WorldMixin",
+        "spawn.SpawnGroupMixin",
+        "spawn.SpawnHelperInfoMixin",
+        "spawn.SpawnHelperMixin"
     ],
     "injectors": {
         "defaultRequire": 1

@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import rocks.blackblock.perf.thread.BlackblockThreads;
+import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.thread.WithMutableThread;
 
 @Mixin(value = ServerChunkManager.class, priority = 1001)
@@ -33,7 +33,7 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements Wi
 
         Thread thread = original.call();
 
-        if (BlackblockThreads.THREADS_ENABLED && BlackblockThreads.ownsThread(thread)) {
+        if (DynamicThreads.THREADS_ENABLED && DynamicThreads.ownsThread(thread)) {
             return this.serverThread;
         }
 

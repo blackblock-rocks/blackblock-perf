@@ -14,6 +14,7 @@ public class WorldMixin implements HasPerformanceInfo {
 
     @Override
     public BibPerf.Info bb$getPerformanceInfo() {
+
         return this.bb$performance_info;
     }
 }

@@ -12,7 +12,10 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import rocks.blackblock.perf.thread.BlackblockThreads;
+import rocks.blackblock.bib.util.BibPerf;
+import rocks.blackblock.perf.debug.PerfDebug;
+import rocks.blackblock.perf.dynamic.DynamicSetting;
+import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.thread.HasPerformanceInfo;
 import rocks.blackblock.perf.util.CrashInfo;
 
@@ -49,7 +52,7 @@ public abstract class MinecraftServerMixin {
     )
     public Iterable<ServerWorld> onTickWorldsGetWorlds(MinecraftServer instance, Operation<Iterable<ServerWorld>> original) {
 
-        if (!BlackblockThreads.THREADS_ENABLED) {
+        if (!DynamicThreads.THREADS_ENABLED) {
             return original.call(instance);
         }
 
@@ -70,7 +73,7 @@ public abstract class MinecraftServerMixin {
     )
     public void onTickWorlds(BooleanSupplier should_keep_ticking, CallbackInfo ci) {
 
-        if (!BlackblockThreads.THREADS_ENABLED) {
+        if (!DynamicThreads.THREADS_ENABLED) {
             return;
         }
 
@@ -84,12 +87,12 @@ public abstract class MinecraftServerMixin {
         boolean is_new_second = this.ticks % 20 == 0;
 
         // All the worlds start at the same time
-        long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis() - PerfDebug.MSPT_ADDITION;
 
         // Tick all the worlds on the thread pool
-        BlackblockThreads.THREAD_POOL.execute(worlds, world -> {
+        DynamicThreads.THREAD_POOL.execute(worlds, world -> {
 
-            BlackblockThreads.attachToThread(Thread.currentThread(), world);
+            DynamicThreads.attachToThread(Thread.currentThread(), world);
 
             if (is_new_second) {
                 WorldTimeUpdateS2CPacket packet = new WorldTimeUpdateS2CPacket(
@@ -100,7 +103,7 @@ public abstract class MinecraftServerMixin {
                 this.playerManager.sendToDimension(packet, world.getRegistryKey());
             }
 
-            BlackblockThreads.swapThreadsAndRun(() -> {
+            DynamicThreads.swapThreadsAndRun(() -> {
 
                 try {
                     world.tick(should_keep_ticking);
@@ -112,10 +115,15 @@ public abstract class MinecraftServerMixin {
 
             long duration = System.currentTimeMillis() - start;
 
-            ((HasPerformanceInfo) world).bb$getPerformanceInfo().aggregateMspt(duration);
+            BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+            info.aggregateMspt(duration);
+
+            if (is_new_second) {
+                DynamicSetting.updateAll(info);
+            }
         });
 
-        BlackblockThreads.THREAD_POOL.awaitCompletion();
+        DynamicThreads.THREAD_POOL.awaitCompletion();
 
         var crash = crash_while_threaded.get();
 
@@ -133,10 +141,10 @@ public abstract class MinecraftServerMixin {
     @Inject(method = "stop", at = @At("HEAD"))
     public void shutdownThreadpool(CallbackInfo ci) {
 
-        if (!BlackblockThreads.THREADS_ENABLED) {
+        if (!DynamicThreads.THREADS_ENABLED) {
             return;
         }
 
-        BlackblockThreads.THREAD_POOL.shutdown();
+        DynamicThreads.THREAD_POOL.shutdown();
     }
 }

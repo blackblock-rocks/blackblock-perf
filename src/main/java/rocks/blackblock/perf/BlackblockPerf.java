@@ -1,11 +1,13 @@
 package rocks.blackblock.perf;
 
 import net.fabricmc.api.ModInitializer;
+import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.BibMod;
-import rocks.blackblock.bib.bv.parameter.IntegerParameter;
 import rocks.blackblock.bib.bv.parameter.MapParameter;
-import rocks.blackblock.bib.bv.value.BvInteger;
-import rocks.blackblock.perf.thread.BlackblockThreads;
+import rocks.blackblock.perf.commands.PerfCommands;
+import rocks.blackblock.perf.debug.PerfDebug;
+import rocks.blackblock.perf.spawn.DynamicSpawns;
+import rocks.blackblock.perf.thread.DynamicThreads;
 
 /**
  * The initializer class
@@ -21,8 +23,14 @@ public class BlackblockPerf implements ModInitializer {
     // The main tweaks map, maps to `/blackblock perf`
     public static final MapParameter<?> PERF_TWEAKS = BibMod.GLOBAL_TWEAKS.add(new MapParameter<>("perf"));
 
-    // The TweakParameter to use for setting the amount of threads
-    private static final IntegerParameter THREADS_PARAMETER = PERF_TWEAKS.add(new IntegerParameter("dimension_threads"));
+    /**
+     * Create a new Tweak map
+     * @since    0.1.0
+     */
+    @ApiStatus.Internal
+    public static MapParameter<?> createTweakMap(String name) {
+        return PERF_TWEAKS.add(new MapParameter<>(name));
+    }
 
     /**
      * The mod is being initialized
@@ -30,15 +38,10 @@ public class BlackblockPerf implements ModInitializer {
      */
     @Override
     public void onInitialize() {
-
-        // Don't use threads by default
-        THREADS_PARAMETER.setDefaultValue(BvInteger.of(0));
-
-        // Listen to changes to the thread count
-        THREADS_PARAMETER.addChangeListener(bvIntegerChangeContext -> {
-             int thread_count = bvIntegerChangeContext.getValue().getFlooredInteger();
-             BlackblockThreads.setNewThreadCount(thread_count);
-        });
+        DynamicThreads.init();
+        DynamicSpawns.init();
+        PerfDebug.init();
+        PerfCommands.init();
     }
 
 }

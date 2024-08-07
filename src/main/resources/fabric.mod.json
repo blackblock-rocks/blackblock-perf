@@ -30,6 +30,9 @@
 			],
 			"net/minecraft/class_1936": [
 				"rocks/blackblock/perf/thread/HasPerformanceInfo"
+			],
+			"net/minecraft/class_1311": [
+				"rocks/blackblock/perf/spawn/CustomSpawnGroupLimits"
 			]
 		}
 	},

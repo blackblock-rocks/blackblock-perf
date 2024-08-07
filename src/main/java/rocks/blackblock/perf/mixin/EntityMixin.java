@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import rocks.blackblock.perf.thread.BlackblockThreads;
+import rocks.blackblock.perf.thread.DynamicThreads;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -23,11 +23,11 @@ public abstract class EntityMixin {
     @Inject(method = "teleportTo", at = @At("HEAD"), cancellable = true)
     public void moveToWorld(TeleportTarget teleportTarget, CallbackInfoReturnable<Entity> cir) {
 
-        if (!BlackblockThreads.THREADS_ENABLED) {
+        if (!DynamicThreads.THREADS_ENABLED) {
             return;
         }
 
-        if (BlackblockThreads.ownsThread(Thread.currentThread())) {
+        if (DynamicThreads.ownsThread(Thread.currentThread())) {
             teleportTarget.world().getServer().execute(() -> {
                 this.teleportTo(teleportTarget);
             });

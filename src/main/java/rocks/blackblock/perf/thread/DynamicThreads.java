@@ -2,18 +2,21 @@ package rocks.blackblock.perf.thread;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.ApiStatus;
+import rocks.blackblock.bib.bv.parameter.IntegerParameter;
+import rocks.blackblock.bib.bv.parameter.MapParameter;
+import rocks.blackblock.bib.bv.value.BvInteger;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.BlackblockPerf;
 
 /**
- * The main threading class,
- * also the initializer.
+ * The main Dynamic Threads class
  *
  * @author   Jelle De Loecker <jelle@elevenways.be>
  * @since    0.1.0
  */
-public class BlackblockThreads {
+public class DynamicThreads {
 
 	// The starting thread name
 	public static final String THREAD_NAME_PREFIX = BlackblockPerf.MOD_ID + "_server_";
@@ -26,6 +29,29 @@ public class BlackblockThreads {
 
 	// The current thread pool
 	public static ThreadPool THREAD_POOL = null;
+
+	// The "threading" tweak map
+	public static final MapParameter<?> THREADING_TWEAKS = BlackblockPerf.createTweakMap("threading");
+
+	// The TweakParameter to use for setting the amount of threads
+	private static final IntegerParameter THREADS_PARAMETER = THREADING_TWEAKS.add(new IntegerParameter("max_threads"));
+
+	/**
+	 * Initialize the settings
+	 * @since    0.1.0
+	 */
+	@ApiStatus.Internal
+	public static void init() {
+
+		// Don't use threads by default
+		THREADS_PARAMETER.setDefaultValue(BvInteger.of(0));
+
+		// Listen to changes to the thread count
+		THREADS_PARAMETER.addChangeListener(bvIntegerChangeContext -> {
+			int thread_count = bvIntegerChangeContext.getValue().getFlooredInteger();
+			DynamicThreads.setNewThreadCount(thread_count);
+		});
+	}
 
 	/**
 	 * Temporarily swaps the main thread of given objects to the current thread,
@@ -82,13 +108,13 @@ public class BlackblockThreads {
 			return;
 		}
 
-		BlackblockThreads.THREADS_COUNT = new_thread_count;
-		BlackblockThreads.THREADS_ENABLED = BlackblockThreads.THREADS_COUNT > 0;
+		DynamicThreads.THREADS_COUNT = new_thread_count;
+		DynamicThreads.THREADS_ENABLED = DynamicThreads.THREADS_COUNT > 0;
 
-		BibLog.attention("Dimensional thread count:", BlackblockThreads.THREADS_COUNT);
+		BibLog.attention("Dimensional thread count:", DynamicThreads.THREADS_COUNT);
 
-		if (BlackblockThreads.THREADS_ENABLED) {
-			BlackblockThreads.THREAD_POOL = new ThreadPool(BlackblockThreads.THREADS_COUNT);
+		if (DynamicThreads.THREADS_ENABLED) {
+			DynamicThreads.THREAD_POOL = new ThreadPool(DynamicThreads.THREADS_COUNT);
 
 			BibPerf.setWorldInfoGetter(World::bb$getPerformanceInfo);
 		} else {
