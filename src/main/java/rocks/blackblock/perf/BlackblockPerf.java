@@ -5,9 +5,7 @@ import rocks.blackblock.bib.BibMod;
 import rocks.blackblock.bib.bv.parameter.IntegerParameter;
 import rocks.blackblock.bib.bv.parameter.MapParameter;
 import rocks.blackblock.bib.bv.value.BvInteger;
-import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.perf.thread.BlackblockThreads;
-import rocks.blackblock.perf.thread.ThreadPool;
 
 /**
  * The initializer class
@@ -38,14 +36,8 @@ public class BlackblockPerf implements ModInitializer {
 
         // Listen to changes to the thread count
         THREADS_PARAMETER.addChangeListener(bvIntegerChangeContext -> {
-            BlackblockThreads.THREADS_COUNT = bvIntegerChangeContext.getValue().getFlooredInteger();
-            BlackblockThreads.THREADS_ENABLED = BlackblockThreads.THREADS_COUNT > 0;
-
-            BibLog.attention("Dimensional thread count:", BlackblockThreads.THREADS_COUNT);
-
-            if (BlackblockThreads.THREADS_ENABLED) {
-                BlackblockThreads.THREAD_POOL = new ThreadPool(BlackblockThreads.THREADS_COUNT);
-            }
+             int thread_count = bvIntegerChangeContext.getValue().getFlooredInteger();
+             BlackblockThreads.setNewThreadCount(thread_count);
         });
     }
 

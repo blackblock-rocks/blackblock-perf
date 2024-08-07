@@ -7,6 +7,8 @@
         "MinecraftServerMixin",
         "RedStoneWireBlockMixin",
         "ServerChunkManagerMixin",
+        "WorldAccessMixin",
+        "WorldAccessor",
         "WorldMixin"
     ],
     "injectors": {

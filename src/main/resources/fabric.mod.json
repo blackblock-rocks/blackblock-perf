@@ -21,8 +21,16 @@
 	},
 	"custom": {
 		"loom:injected_interfaces": {
-			"net/minecraft/server/world/ServerChunkManager": ["rocks/blackblock/perf/thread/WithMutableThread"],
-			"net/minecraft/world/World": ["rocks/blackblock/perf/thread/WithMutableThread"]
+			"net/minecraft/class_3215": [
+				"rocks/blackblock/perf/thread/WithMutableThread"
+			],
+			"net/minecraft/class_1937": [
+				"rocks/blackblock/perf/thread/WithMutableThread",
+				"rocks/blackblock/perf/thread/HasPerformanceInfo"
+			],
+			"net/minecraft/class_1936": [
+				"rocks/blackblock/perf/thread/HasPerformanceInfo"
+			]
 		}
 	},
 	"accessWidener": "blackblock-perf.accesswidener",

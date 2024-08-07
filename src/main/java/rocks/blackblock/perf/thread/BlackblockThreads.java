@@ -1,6 +1,9 @@
 package rocks.blackblock.perf.thread;
 
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
+import rocks.blackblock.bib.util.BibLog;
+import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.BlackblockPerf;
 
 /**
@@ -67,5 +70,29 @@ public class BlackblockThreads {
 	 */
 	public static boolean ownsThread(Thread thread) {
 		return thread.getName().startsWith(THREAD_NAME_PREFIX);
+	}
+
+	/**
+	 * Get the new amount of threads to use
+	 * @since    0.1.0
+	 */
+	public static void setNewThreadCount(int new_thread_count) {
+
+		if (THREADS_COUNT == new_thread_count) {
+			return;
+		}
+
+		BlackblockThreads.THREADS_COUNT = new_thread_count;
+		BlackblockThreads.THREADS_ENABLED = BlackblockThreads.THREADS_COUNT > 0;
+
+		BibLog.attention("Dimensional thread count:", BlackblockThreads.THREADS_COUNT);
+
+		if (BlackblockThreads.THREADS_ENABLED) {
+			BlackblockThreads.THREAD_POOL = new ThreadPool(BlackblockThreads.THREADS_COUNT);
+
+			BibPerf.setWorldInfoGetter(World::bb$getPerformanceInfo);
+		} else {
+			BibPerf.setWorldInfoGetter(null);
+		}
 	}
 }

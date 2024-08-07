@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rocks.blackblock.perf.thread.BlackblockThreads;
+import rocks.blackblock.perf.thread.HasPerformanceInfo;
 import rocks.blackblock.perf.util.CrashInfo;
 
 import java.util.Collections;
@@ -82,8 +83,12 @@ public abstract class MinecraftServerMixin {
         // Is this a new second?
         boolean is_new_second = this.ticks % 20 == 0;
 
+        // All the worlds start at the same time
+        long start = System.currentTimeMillis();
+
         // Tick all the worlds on the thread pool
         BlackblockThreads.THREAD_POOL.execute(worlds, world -> {
+
             BlackblockThreads.attachToThread(Thread.currentThread(), world);
 
             if (is_new_second) {
@@ -104,6 +109,10 @@ public abstract class MinecraftServerMixin {
                 }
 
             }, world, world.getChunkManager());
+
+            long duration = System.currentTimeMillis() - start;
+
+            ((HasPerformanceInfo) world).bb$getPerformanceInfo().aggregateMspt(duration);
         });
 
         BlackblockThreads.THREAD_POOL.awaitCompletion();

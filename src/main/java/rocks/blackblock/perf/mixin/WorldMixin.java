@@ -2,17 +2,18 @@ package rocks.blackblock.perf.mixin;
 
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
-import rocks.blackblock.perf.thread.WithMutableThread;
+import org.spongepowered.asm.mixin.Unique;
+import rocks.blackblock.bib.util.BibPerf;
+import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
 @Mixin(World.class)
-public interface WorldMixin extends WithMutableThread {
+public class WorldMixin implements HasPerformanceInfo {
 
-    @Accessor("thread")
-    @Override
-    void bb$setMainThread(Thread thread);
+    @Unique
+    private final BibPerf.Info bb$performance_info = new BibPerf.Info((World) (Object) this);
 
-    @Accessor("thread")
     @Override
-    Thread bb$getMainThread();
+    public BibPerf.Info bb$getPerformanceInfo() {
+        return this.bb$performance_info;
+    }
 }
