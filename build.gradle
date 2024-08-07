@@ -99,15 +99,15 @@ repositories {
 }
 
 loom {
+	accessWidenerPath = file("src/main/resources/blackblockperf.accesswidener")
 	splitEnvironmentSourceSets()
 
 	mods {
-		"modid" {
+		"blackblock-perf" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
 	}
-
 }
 
 dependencies {

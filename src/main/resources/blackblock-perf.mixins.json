@@ -11,9 +11,13 @@
         "WorldAccessMixin",
         "WorldAccessor",
         "WorldMixin",
+        "spawn.InfestedStatusEffectMixin",
+        "spawn.MobSpawnerLogicMixin",
+        "spawn.NetherPortalBlockMixin",
         "spawn.SpawnGroupMixin",
         "spawn.SpawnHelperInfoMixin",
-        "spawn.SpawnHelperMixin"
+        "spawn.SpawnHelperMixin",
+        "spawn.ZombieMixin"
     ],
     "injectors": {
         "defaultRequire": 1

@@ -11,6 +11,12 @@ import rocks.blackblock.perf.spawn.CustomSpawnGroupLimits;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Allow looking up world-specific mobcaps for spawn groups
+ *
+ * @author   Jelle De Loecker <jelle@elevenways.be>
+ * @since    0.1.0
+ */
 @Mixin(value = SpawnGroup.class, priority = 900)
 public class SpawnGroupMixin implements CustomSpawnGroupLimits {
 

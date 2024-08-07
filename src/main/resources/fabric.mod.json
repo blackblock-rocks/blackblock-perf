@@ -36,7 +36,7 @@
 			]
 		}
 	},
-	"accessWidener": "blackblock-perf.accesswidener",
+	"accessWidener": "blackblockperf.accesswidener",
 	"mixins": [
 		"blackblock-perf.mixins.json"
 	],

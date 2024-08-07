@@ -12,6 +12,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import rocks.blackblock.perf.spawn.CheckBelowCapPerWorld;
 
+/**
+ * Add the bb$isBelowCap method to the SpawnHelper.Info class
+ *
+ * @author   Jelle De Loecker <jelle@elevenways.be>
+ * @since    0.1.0
+ */
 @Mixin(SpawnHelper.Info.class)
 public class SpawnHelperInfoMixin implements CheckBelowCapPerWorld {
 
