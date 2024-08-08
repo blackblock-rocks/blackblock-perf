@@ -8,3 +8,4 @@ accessible class net/minecraft/world/SpawnDensityCapper$DensityCap
 accessible field net/minecraft/world/SpawnDensityCapper playersToDensityCap Ljava/util/Map;
 accessible field net/minecraft/world/SpawnDensityCapper$DensityCap spawnGroupsToDensity Lit/unimi/dsi/fastutil/objects/Object2IntMap;
 accessible class net/minecraft/entity/effect/InfestedStatusEffect
+accessible field net/minecraft/block/AbstractBlock collidable Z

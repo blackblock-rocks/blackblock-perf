@@ -12,6 +12,7 @@
         "WorldAccessor",
         "WorldMixin",
         "entity.move_zero_velocity.EntityMixin",
+        "entity.villager_lobotomy.VillagerEntityMixin",
         "spawn.InfestedStatusEffectMixin",
         "spawn.MobSpawnerLogicMixin",
         "spawn.NetherPortalBlockMixin",
