@@ -11,6 +11,7 @@
         "WorldAccessMixin",
         "WorldAccessor",
         "WorldMixin",
+        "entity.despawn_holding_garbage.MobEntityMixin",
         "entity.move_zero_velocity.EntityMixin",
         "entity.villager_lobotomy.VillagerEntityMixin",
         "spawn.InfestedStatusEffectMixin",
