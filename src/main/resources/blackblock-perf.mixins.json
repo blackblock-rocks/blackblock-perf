@@ -11,6 +11,7 @@
         "WorldAccessMixin",
         "WorldAccessor",
         "WorldMixin",
+        "entity.move_zero_velocity.EntityMixin",
         "spawn.InfestedStatusEffectMixin",
         "spawn.MobSpawnerLogicMixin",
         "spawn.NetherPortalBlockMixin",
