@@ -58,7 +58,7 @@ public class DynamicThreads {
 	 * executes a task, and then restores the original threads.
 	 * @since    0.1.0
 	 */
-	public static synchronized void swapThreadsAndRun(Runnable task, WithMutableThread... threaded_instances) {
+	public static void swapThreadsAndRun(Runnable task, WithMutableThread... threaded_instances) {
 		Thread new_thread = Thread.currentThread();
 		Thread[] original_threads = new Thread[threaded_instances.length];
 
@@ -87,7 +87,7 @@ public class DynamicThreads {
 	 * @since    0.1.0
 	 */
 	public static void attachToThread(Thread thread, String name) {
-		thread.setName(THREAD_NAME_PREFIX + name);
+		thread.setName(THREAD_NAME_PREFIX + name + "_" + thread.getId());
 	}
 
 	/**
