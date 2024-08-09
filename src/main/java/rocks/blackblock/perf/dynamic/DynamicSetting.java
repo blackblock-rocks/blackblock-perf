@@ -1,7 +1,6 @@
 package rocks.blackblock.perf.dynamic;
 
 import net.minecraft.world.World;
-import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ public class DynamicSetting {
     private static final List<DynamicSetting> SETTINGS = new ArrayList<>();
 
     /**
-     * Initializes a new  dynamic setting
+     * Initializes a new dynamic setting
      * @since 0.1.0
      */
     public DynamicSetting(String title, int min, int max, int default_value, IntFunction<String> value_formatter, BiConsumer<World, Integer> on_change) {
@@ -67,6 +66,22 @@ public class DynamicSetting {
     }
 
     /**
+     * Set the new default (preferred) value
+     * @since 0.1.0
+     */
+    public void setDefaultValue(int value) {
+        this.default_value = value;
+    }
+
+    /**
+     * Get the current value
+     * @since 0.1.0
+     */
+    public int getValue(World world) {
+        return this.values.getOrDefault(world, this.default_value);
+    }
+
+    /**
      * Get the formatted value
      * @since 0.1.0
      */
@@ -76,11 +91,7 @@ public class DynamicSetting {
             return "null";
         }
 
-        Integer value = this.values.get(world);
-
-        if (value == null) {
-            value = this.default_value;
-        }
+        Integer value = this.getValue(world);
 
         if (this.value_formatter == null) {
             return Integer.toString(value);

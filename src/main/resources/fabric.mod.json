@@ -33,6 +33,13 @@
 			],
 			"net/minecraft/class_1311": [
 				"rocks/blackblock/perf/spawn/CustomSpawnGroupLimits"
+			],
+			"net/minecraft/class_1297": [
+				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable",
+				"rocks/blackblock/perf/interfaces/activation_range/DeactivatableEntity"
+			],
+			"net/minecraft/class_1355": [
+				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable"
 			]
 		}
 	},
@@ -40,6 +47,9 @@
 	"mixins": [
 		"blackblock-perf.mixins.json"
 	],
+	"injectors": {
+		"defaultRequire": 1
+	},
 	"depends": {
 		"fabricloader": ">=0.15.11",
 		"minecraft": "~1.21",

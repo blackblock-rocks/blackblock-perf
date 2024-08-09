@@ -9,3 +9,10 @@ accessible field net/minecraft/world/SpawnDensityCapper playersToDensityCap Ljav
 accessible field net/minecraft/world/SpawnDensityCapper$DensityCap spawnGroupsToDensity Lit/unimi/dsi/fastutil/objects/Object2IntMap;
 accessible class net/minecraft/entity/effect/InfestedStatusEffect
 accessible field net/minecraft/block/AbstractBlock collidable Z
+accessible field net/minecraft/entity/projectile/PersistentProjectileEntity inGround Z
+accessible field net/minecraft/entity/LivingEntity jumping Z
+accessible field net/minecraft/entity/passive/BeeEntity pollinateGoal Lnet/minecraft/entity/passive/BeeEntity$PollinateGoal;
+accessible class net/minecraft/entity/passive/BeeEntity$PollinateGoal
+accessible method net/minecraft/entity/passive/BeeEntity$PollinateGoal isRunning ()Z
+accessible field net/minecraft/entity/mob/MobEntity goalSelector Lnet/minecraft/entity/ai/goal/GoalSelector;
+accessible field net/minecraft/entity/mob/MobEntity targetSelector Lnet/minecraft/entity/ai/goal/GoalSelector;
