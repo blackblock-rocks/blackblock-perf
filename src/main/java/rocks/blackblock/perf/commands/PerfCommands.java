@@ -51,13 +51,14 @@ public class PerfCommands {
 
         if (DynamicThreads.THREADS_ENABLED) {
             lore.addLine("Threadcount", DynamicThreads.THREADS_COUNT);
-            lore.addLine("World: Loaded chunks / MSPT / TPS / Load / State / Simulation Distance");
+            lore.addLine("World: Loaded chunks / MSPT / TPS / Load / State / Simulation / View Distance");
 
             for (var world : BibServer.getServer().getWorlds()) {
                 BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
                 Text world_name = Text.literal(world.getRegistryKey().getValue().getPath());
                 MutableText line = info.toTextLine();
                 line = line.append(" / ").append(Text.literal(((CustomDistances) world).bb$getSimulationDistance() + "").formatted(Formatting.AQUA));
+                line = line.append(" / ").append(Text.literal(((CustomDistances) world).bb$getViewDistance() + "").formatted(Formatting.AQUA));
 
                 lore.addLine(world_name.copy().append(": ").append(line));
             }

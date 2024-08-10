@@ -1,6 +1,8 @@
 package rocks.blackblock.perf.mixin.distance;
 
+import net.minecraft.network.packet.s2c.play.ChunkLoadDistanceS2CPacket;
 import net.minecraft.network.packet.s2c.play.SimulationDistanceS2CPacket;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerChunkManager;
 import net.minecraft.server.world.ServerWorld;
@@ -40,7 +42,19 @@ public abstract class ServerWorldMixin extends WorldMixin {
     @Unique
     @Override
     public void bb$setViewDistance(int view_distance) {
+
+        if (this.bb$view_distance == view_distance) {
+            return;
+        }
+
         this.bb$view_distance = view_distance;
+
+        this.chunkManager.applyViewDistance(view_distance);
+
+        var update_packet = new ChunkLoadDistanceS2CPacket(view_distance);
+        for (var player :this.getPlayers()) {
+            player.networkHandler.sendPacket(update_packet);
+        }
     }
 
     @Unique
@@ -77,5 +91,8 @@ public abstract class ServerWorldMixin extends WorldMixin {
     private void bb$onAddPlayer(ServerPlayerEntity player, CallbackInfo ci) {
         var update_packet = new SimulationDistanceS2CPacket(this.bb$simulation_distance);
         player.networkHandler.sendPacket(update_packet);
+
+        var update_packet2 = new ChunkLoadDistanceS2CPacket(this.bb$view_distance);
+        player.networkHandler.sendPacket(update_packet2);
     }
 }

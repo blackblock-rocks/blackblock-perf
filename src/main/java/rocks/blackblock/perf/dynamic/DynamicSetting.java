@@ -292,6 +292,12 @@ public class DynamicSetting {
      * @since 0.1.0
      */
     private int calculateValueForState(BibPerf.State state) {
+
+        // Keep using the preferred value is we haven't reached the minimum performance state yet
+        if (this.min_performance_state.getSeverity() > state.getSeverity()) {
+            return this.preferred_value;
+        }
+
         float state_modifier = state.getPerformanceModifier();
 
         // Only apply the modifier if it's greater than 0
