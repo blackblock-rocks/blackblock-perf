@@ -22,6 +22,7 @@ import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.bib.util.BibServer;
 import rocks.blackblock.bib.util.BibText;
 import rocks.blackblock.perf.activation_range.ActivationRange;
+import rocks.blackblock.perf.interfaces.distances.CustomDistances;
 import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
@@ -50,12 +51,14 @@ public class PerfCommands {
 
         if (DynamicThreads.THREADS_ENABLED) {
             lore.addLine("Threadcount", DynamicThreads.THREADS_COUNT);
-            lore.addLine("World: Loaded chunks / MSPT / TPS / Load / State");
+            lore.addLine("World: Loaded chunks / MSPT / TPS / Load / State / Simulation Distance");
 
             for (var world : BibServer.getServer().getWorlds()) {
                 BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
                 Text world_name = Text.literal(world.getRegistryKey().getValue().getPath());
                 MutableText line = info.toTextLine();
+                line = line.append(" / ").append(Text.literal(((CustomDistances) world).bb$getSimulationDistance() + "").formatted(Formatting.AQUA));
+
                 lore.addLine(world_name.copy().append(": ").append(line));
             }
         }

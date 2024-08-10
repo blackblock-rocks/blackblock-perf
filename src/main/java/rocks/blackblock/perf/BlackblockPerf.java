@@ -6,6 +6,7 @@ import rocks.blackblock.bib.BibMod;
 import rocks.blackblock.bib.bv.parameter.MapParameter;
 import rocks.blackblock.perf.commands.PerfCommands;
 import rocks.blackblock.perf.debug.PerfDebug;
+import rocks.blackblock.perf.distance.DynamicDistances;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
 import rocks.blackblock.perf.thread.DynamicThreads;
 
@@ -40,6 +41,7 @@ public class BlackblockPerf implements ModInitializer {
     public void onInitialize() {
         DynamicThreads.init();
         DynamicSpawns.init();
+        DynamicDistances.init();
         PerfDebug.init();
         PerfCommands.init();
     }

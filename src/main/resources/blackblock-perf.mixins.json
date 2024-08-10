@@ -11,6 +11,8 @@
         "WorldAccessMixin",
         "WorldAccessor",
         "WorldMixin",
+        "distance.ServerWorldMixin",
+        "distance.WorldMixin",
         "entity.activation_range.EntityMixin",
         "entity.activation_range.ServerWorldMixin",
         "entity.activation_range.fixes.CatEntityMixin",
