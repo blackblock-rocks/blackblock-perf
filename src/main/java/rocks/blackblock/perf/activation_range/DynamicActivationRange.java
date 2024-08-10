@@ -8,9 +8,7 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.decoration.EndCrystalEntity;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.entity.mob.FlyingEntity;
-import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.*;
 import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.*;
@@ -53,10 +51,85 @@ public class DynamicActivationRange {
             .setActiveTickDelay(18, 18)
             .build();
 
-    // The activation range for raiders
-    private static final ActivationRange RAIDER_RANGE = ActivationRange.build("raider")
+    // The activation range for illagers
+    private static final ActivationRange ILLAGER_RANGE = ActivationRange.build("illager")
             .setActivationRange(24, 48)
             .setActiveTickDelay(18, 20)
+            .setInactiveWakeupInterval(20)
+            .setVerticalRangeExtraHeight(64)
+            .setVerticalRangeExtraHeightDown(0)
+            .build();
+
+    // The activation range for water mobs
+    private static final ActivationRange WATER_RANGE = ActivationRange.build("water")
+            .setActivationRange(8, 16)
+            .setActiveTickDelay(10, 18)
+            .setInactiveWakeupInterval(60)
+            .setVerticalRangeExtraHeight(0)
+            .setVerticalRangeExtraHeightDown(0)
+            .build();
+
+    // The activation range for villagers
+    private static final ActivationRange VILLAGER_RANGE = ActivationRange.build("villager")
+            .setActivationRange(8, 16)
+            .setActiveTickDelay(10, 18)
+            .setInactiveWakeupInterval(30)
+            .setVerticalRangeExtraHeight(0)
+            .setVerticalRangeExtraHeightDown(0)
+            .build();
+
+    // The activation range for zombies
+    private static final ActivationRange ZOMBIE_RANGE = ActivationRange.build("zombie")
+            .setActivationRange(12, 16)
+            .setActiveTickDelay(15, 20)
+            .setInactiveWakeupInterval(20)
+            .setVerticalRangeExtraHeight(64)
+            .setVerticalRangeExtraHeightDown(0)
+            .build();
+
+    // The activation range for "subterranean" mobs (creepers, slime, magma cubes, hoglin)
+    private static final ActivationRange SUB_MONSTER_RANGE = ActivationRange.build("monsters-sub")
+            .setActivationRange(16, 32)
+            .setActiveTickDelay(15, 20)
+            .setInactiveWakeupInterval(20)
+            .setVerticalRangeExtraHeight(64)
+            .setVerticalRangeExtraHeightDown(64)
+            .build();
+
+    // The activation range for flying mobs (ghasts and phantoms)
+    private static final ActivationRange FLYING_RANGE = ActivationRange.build("flying-monsters")
+            .setActivationRange(32, 48)
+            .setActiveTickDelay(15, 20)
+            .setInactiveWakeupInterval(20)
+            .setVerticalRangeExtraHeight(64)
+            .setVerticalRangeExtraHeightDown(0)
+            .build();
+
+    // The activation range for the rest of the mobs
+    private static final ActivationRange REST_MONSTER_RANGE = ActivationRange.build("monsters-other")
+            .setActivationRange(16, 32)
+            .setActiveTickDelay(15, 20)
+            .setInactiveWakeupInterval(20)
+            .setVerticalRangeExtraHeight(64)
+            .setVerticalRangeExtraHeightDown(0)
+            .build();
+
+    // The activation range for animals
+    private static final ActivationRange ANIMAL_RANGE = ActivationRange.build("animals")
+            .setActivationRange(8, 16)
+            .setActiveTickDelay(10, 18)
+            .setInactiveWakeupInterval(60)
+            .setVerticalRangeExtraHeight(0)
+            .setVerticalRangeExtraHeightDown(0)
+            .build();
+
+    // The activation range for creatures
+    private static final ActivationRange CREATURE_RANGE = ActivationRange.build("creatures")
+            .setActivationRange(16, 24)
+            .setActiveTickDelay(10, 20)
+            .setInactiveWakeupInterval(30)
+            .setVerticalRangeExtraHeight(0)
+            .setVerticalRangeExtraHeightDown(0)
             .build();
 
     /**
@@ -102,6 +175,44 @@ public class DynamicActivationRange {
 
         if (!appliesTo(entity)) {
             return null;
+        }
+
+        if (entity instanceof MerchantEntity) {
+            return VILLAGER_RANGE;
+        }
+
+        if (entity instanceof ZombieEntity) {
+            return ZOMBIE_RANGE;
+        }
+
+        if (entity instanceof FlyingEntity) {
+            return FLYING_RANGE;
+        }
+
+        if (entity instanceof IllagerEntity) {
+            return ILLAGER_RANGE;
+        }
+
+        var type = entity.getType();
+
+        if (type == EntityType.CREEPER || type == EntityType.SLIME || type == EntityType.MAGMA_CUBE || type == EntityType.HOGLIN) {
+            return SUB_MONSTER_RANGE;
+        }
+
+        if (entity instanceof Monster) {
+            return REST_MONSTER_RANGE;
+        }
+
+        if (entity instanceof WaterCreatureEntity) {
+            return WATER_RANGE;
+        }
+
+        if (entity instanceof AnimalEntity || entity instanceof AmbientEntity) {
+            return ANIMAL_RANGE;
+        }
+
+        if (entity instanceof MobEntity) {
+            return CREATURE_RANGE;
         }
 
         return DEFAULT_RANGE;
