@@ -246,7 +246,7 @@ public class DynamicActivationRange {
             }
 
             // Ignore AFK players when the server is busy
-            if (((BlackblockPlayer) player).bb$isAfk() && info.isOverloaded()) {
+            if ((info.isRandomlyDisabled() || info.isCritical()) && ((BlackblockPlayer) player).bb$isAfk()) {
                 continue;
             }
 
@@ -442,8 +442,8 @@ public class DynamicActivationRange {
                 }
             }
         }
-        return -1;
 
+        return -1;
     }
 
     /**
