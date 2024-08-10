@@ -5,8 +5,11 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
+import rocks.blackblock.bib.collection.RollingAverage;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.bib.util.BibText;
+import rocks.blackblock.perf.distance.DynamicDistances;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +41,17 @@ public class DynamicSetting {
     // The upper limit of the value
     private final int upper_limit;
 
+    // The amount of smoothing to apply
+    private float smoothing = 0.2f;
+
+    // Over how many seconds should we get an average?
+    private int rolling_average_window = 5;
+
     // The minimum performance state at which the performance values should be used
     private final BibPerf.State min_performance_state;
+
+    // The rolling average
+    private ConcurrentHashMap<World, RollingAverage<Float>> rolling_averages = new ConcurrentHashMap<>();
 
     // The value formatter
     IntFunction<String> value_formatter;
@@ -48,7 +60,10 @@ public class DynamicSetting {
     BiConsumer<World, Integer> on_change;
 
     // The value per world
-    private final ConcurrentHashMap<World, Integer> values = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<World, Float> values = new ConcurrentHashMap<>();
+
+    // The rounded value per world
+    private final ConcurrentHashMap<World, Integer> rounded_values = new ConcurrentHashMap<>();
 
     // All the dynamic settings
     private static final List<DynamicSetting> SETTINGS = new ArrayList<>();
@@ -104,7 +119,23 @@ public class DynamicSetting {
      * @since 0.1.0
      */
     public int getCurrentValue(World world) {
-        return this.values.getOrDefault(world, this.preferred_value);
+        return this.rounded_values.getOrDefault(world, this.preferred_value);
+    }
+
+    /**
+     * Set the amount of smoothing to apply
+     * @since 0.1.0
+     */
+    public void setSmoothing(float smoothing) {
+        this.smoothing = smoothing;
+    }
+
+    /**
+     * Set the rolling average window
+     * @since 0.1.0
+     */
+    public void setRollingAverageWindow(int window) {
+        this.rolling_average_window = window;
     }
 
     /**
@@ -133,23 +164,23 @@ public class DynamicSetting {
      */
     public MutableText getCurrentValueText(World world) {
 
-        int current_value = this.getCurrentValue(world);
+        int current_rounded_value = this.getCurrentValue(world);
         String value_str;
 
         if (this.value_formatter == null) {
-            value_str = Integer.toString(current_value);
+            value_str = Integer.toString(current_rounded_value);
         } else {
-            value_str = this.value_formatter.apply(current_value);
+            value_str = this.value_formatter.apply(current_rounded_value);
         }
 
         MutableText result = Text.literal(value_str);
 
-        if (current_value == this.preferred_value) {
+        if (current_rounded_value == this.preferred_value) {
             result = result.formatted(Formatting.GREEN);
         } else {
             // Slowly fade the colour from orange to red
             int max_difference = Math.abs(this.preferred_value - this.performance_value);
-            int difference = Math.abs(current_value - this.preferred_value);
+            int difference = Math.abs(current_rounded_value - this.preferred_value);
             int percentage = difference * 100 / max_difference;
 
             if (percentage > 50) {
@@ -187,7 +218,13 @@ public class DynamicSetting {
         BibPerf.State currentState = info.getCurrentState();
         BibPerf.State targetState = info.getTargetState();
 
-        Integer old_value = this.values.getOrDefault(world, this.preferred_value);
+        boolean is_new_value = false;
+        Float old_value = this.values.get(world);
+
+        if (old_value == null) {
+            is_new_value = true;
+            old_value = (float) this.preferred_value;
+        }
 
         int target_value;
         if (currentState == targetState) {
@@ -205,17 +242,47 @@ public class DynamicSetting {
             target_value = (int) lerp(currentStateValue, targetStateValue, info.getRecoveryProgress());
         }
 
+        // If the current value is already equal to the target, no need to update
+        if (!is_new_value && Math.abs(old_value - target_value) < 0.009f) {
+            return;
+        }
+
         // Apply smoothing
-        float new_calculated_value = lerp(old_value, target_value, 0.2f);
+        float new_calculated_value = lerp(old_value, target_value, this.smoothing);
+
+        RollingAverage<Float> rolling_average = this.rolling_averages.get(world);
+
+        if (rolling_average == null) {
+            rolling_average = new RollingAverage<>(this.rolling_average_window);
+            this.rolling_averages.put(world, rolling_average);
+        }
+
+        rolling_average.addValue(new_calculated_value);
 
         // Ensure the new value is within limits
-        int new_value = Math.max(this.lower_limit, Math.min(this.upper_limit, Math.round(new_calculated_value)));
+        float new_value = Math.max(this.lower_limit, Math.min(this.upper_limit, (float) rolling_average.getAverage()));
 
         if (old_value != new_value) {
+            is_new_value = true;
+        }
+
+        if (is_new_value) {
+            float epsilon = 0.01f;
+            int new_rounded_value;
+
+            // This makes it drop to a performance value faster
+            // than going back to the preferred value
+            if (this.preferred_value > this.performance_value) {
+                new_rounded_value = (int) (new_value + epsilon);
+            } else {
+                new_rounded_value = (int) (new_value + (1 - epsilon));
+            }
+
             this.values.put(world, new_value);
+            this.rounded_values.put(world, new_rounded_value);
 
             if (this.on_change != null) {
-                this.on_change.accept(world, new_value);
+                this.on_change.accept(world, new_rounded_value);
             }
         }
     }
@@ -226,7 +293,13 @@ public class DynamicSetting {
      */
     private int calculateValueForState(BibPerf.State state) {
         float state_modifier = state.getPerformanceModifier();
-        return Math.round(this.preferred_value + (this.performance_value - this.preferred_value) * state_modifier);
+
+        // Only apply the modifier if it's greater than 0
+        if (state_modifier > 0) {
+            return Math.round(this.preferred_value + (this.performance_value - this.preferred_value) * state_modifier);
+        } else {
+            return this.preferred_value;
+        }
     }
 
     /**
