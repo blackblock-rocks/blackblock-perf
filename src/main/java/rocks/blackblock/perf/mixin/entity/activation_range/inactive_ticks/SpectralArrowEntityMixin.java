@@ -1,7 +1,6 @@
 package rocks.blackblock.perf.mixin.entity.activation_range.inactive_ticks;
 
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.PhantomEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.entity.projectile.SpectralArrowEntity;
 import net.minecraft.world.World;

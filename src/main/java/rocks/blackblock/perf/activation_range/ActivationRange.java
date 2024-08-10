@@ -1,6 +1,8 @@
 package rocks.blackblock.perf.activation_range;
 
+import net.minecraft.text.MutableText;
 import net.minecraft.world.World;
+import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.dynamic.DynamicSetting;
 
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ public class ActivationRange {
     // The name of this activation range (Like what entities it is used for)
     private String name;
 
-    // The interval between inactive entity wakeups in seconds.
+    // The interval between inactive entity wakeups in seconds
     private int inactive_wakeup_interval = -1;
 
     // Should this entity be woken up after a certain amount of inactive ticks?
@@ -66,17 +68,26 @@ public class ActivationRange {
     }
 
     /**
-     * Set the activation range
+     * Get the name of this activation range
+     * @since 0.1.0
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Set the preferred activation range of these entities.
+     * The minimum value is used during high load, the maximum value during low load.
      * @since 0.1.0
      */
     public void setActivationRange(int min, int max) {
 
         if (this.dynamic_activation_range == null) {
-            this.dynamic_activation_range = new DynamicSetting(this.name, min, 999, max, value -> value + "", null);
+            this.dynamic_activation_range = new DynamicSetting(this.name, BibPerf.State.BUSY, 1, 128, value -> value + "", null);
         }
 
-        this.dynamic_activation_range.setMin(min);
-        this.dynamic_activation_range.setDefaultValue(max);
+        this.dynamic_activation_range.setPerformanceValue(min);
+        this.dynamic_activation_range.setPreferredValue(max);
     }
 
     /**
@@ -84,7 +95,15 @@ public class ActivationRange {
      * @since 0.1.0
      */
     public int getActivationRange(World world) {
-        return this.dynamic_activation_range.getValue(world);
+        return this.dynamic_activation_range.getCurrentValue(world);
+    }
+
+    /**
+     * Get the current activation range as text
+     * @since 0.1.0
+     */
+    public MutableText getActivationRangeText(World world) {
+        return this.dynamic_activation_range.getCurrentValueText(world);
     }
 
     /**
@@ -154,17 +173,18 @@ public class ActivationRange {
     }
 
     /**
-     * Set the active tick delay
+     * Set the active tick delay.
+     * The minimum value is used during low load, the maximum value during high load.
      * @since 0.1.0
      */
     public void setActiveTickDelay(int min, int max) {
 
         if (this.dynamic_active_tick_delay == null) {
-            this.dynamic_active_tick_delay = new DynamicSetting(this.name, min, 999, max, value -> value + "", null);
+            this.dynamic_active_tick_delay = new DynamicSetting(this.name, BibPerf.State.VERY_BUSY, 1, 999, value -> value + "", null);
         }
 
-        this.dynamic_active_tick_delay.setMin(min);
-        this.dynamic_active_tick_delay.setDefaultValue(max);
+        this.dynamic_active_tick_delay.setPerformanceValue(max);
+        this.dynamic_active_tick_delay.setPreferredValue(min);
     }
 
     /**
@@ -172,7 +192,15 @@ public class ActivationRange {
      * @since 0.1.0
      */
     public int getActiveTickDelay(World world) {
-        return this.dynamic_active_tick_delay.getValue(world);
+        return this.dynamic_active_tick_delay.getCurrentValue(world);
+    }
+
+    /**
+     * Get the current active tick delay as text
+     * @since 0.1.0
+     */
+    public MutableText getActiveTickDelayText(World world) {
+        return this.dynamic_active_tick_delay.getCurrentValueText(world);
     }
 
     /**

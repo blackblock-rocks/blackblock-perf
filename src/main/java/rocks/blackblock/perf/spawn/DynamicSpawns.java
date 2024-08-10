@@ -15,6 +15,7 @@ import rocks.blackblock.bib.bv.parameter.MapParameter;
 import rocks.blackblock.bib.bv.value.BvInteger;
 import rocks.blackblock.bib.player.BlackblockPlayer;
 import rocks.blackblock.bib.util.BibLog;
+import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.BlackblockPerf;
 import rocks.blackblock.perf.dynamic.DynamicSetting;
 import rocks.blackblock.perf.thread.HasPerformanceInfo;
@@ -44,8 +45,8 @@ public class DynamicSpawns {
     // The dynamic setting
     public static DynamicSetting MOBCAP_MODIFIER = new DynamicSetting(
             "Mobcap Modifier",
-            30,
-            100,
+            BibPerf.State.BUSY,
+            0,
             100,
             value -> value + "%",
             DynamicSpawns::updateMobcaps
@@ -57,6 +58,9 @@ public class DynamicSpawns {
      */
     @ApiStatus.Internal
     public static void init() {
+
+        MOBCAP_MODIFIER.setPreferredValue(100);
+        MOBCAP_MODIFIER.setPerformanceValue(30);
 
         // The minimum modifier percentage is 30%
         MIN_MODIFIER_PERCENTAGE_PARAMETER.setDefaultValue(BvInteger.of(30));
