@@ -61,7 +61,13 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
         int check_count = this.bb$not_lobotomized_count > 3 ? 600 : 300;
 
         if (this.age % check_count == 0) {
+            this.bb$lobotomized = this.hasVehicle() || !this.bb$canTravel();
 
+            if (this.bb$lobotomized) {
+                this.bb$not_lobotomized_count = 0;
+            } else {
+                this.bb$not_lobotomized_count++;
+            }
         }
 
         return this.bb$lobotomized;
