@@ -20,6 +20,7 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import rocks.blackblock.bib.player.BlackblockPlayer;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
@@ -253,23 +254,43 @@ public class DynamicActivationRange {
             Box max_box = player.getBoundingBox().expand(max_range, 256, max_range);
 
             for (Entity entity : world.getOtherEntities(player, max_box)) {
-                activateEntityIfNeeded(player, entity, current_tick, DEFAULT_RANGE);
+                activateEntityIfNeeded(info, player, entity, current_tick, DEFAULT_RANGE);
             }
         }
     }
 
-    public static void activateEntityIfNeeded(ServerPlayerEntity player, Entity entity, int current_tick, ActivationRange global_config) {
+    /**
+     * Activate the given entity if it's within range of the given player
+     * and if it's not already active.
+     * @since 0.1.0
+     */
+    public static void activateEntityIfNeeded(BibPerf.Info info, ServerPlayerEntity player, Entity entity, int current_tick, ActivationRange global_config) {
 
         if (current_tick < entity.bb$getActivatedUntilTick()) {
             return;
         }
 
-        if (entity.bb$isExcludedFromDynamicActivationRange() || isWithinRange(player, entity, global_config)) {
+        if (entity.bb$isExcludedFromDynamicActivationRange() || isWithinRange(info, player, entity, global_config)) {
             entity.bb$setActivatedUntilTick(current_tick + 19);
         }
     }
 
-    private static boolean isWithinRange(ServerPlayerEntity player, Entity entity, ActivationRange global_config) {
+    private static boolean isWithinRange(BibPerf.Info info, ServerPlayerEntity player, Entity entity, ActivationRange global_config) {
+
+        EntityCluster group = entity.bb$getCluster();
+
+        if (group != null) {
+            if (group.getScore() > 3 && info.isRandomlyDisabled()) {
+                return false;
+            }
+
+            boolean is_afk = ((BlackblockPlayer) player).bb$isAfk();
+
+            if (group.getScore() > 6 && is_afk) {
+                return false;
+            }
+        }
+
         final ActivationRange type = entity.bb$getActivationRange();
         final int range = type.getActivationRange(player.getWorld());
 
@@ -289,11 +310,6 @@ public class DynamicActivationRange {
             return deltaY <= range && deltaY >= -range
                     || (deltaY > 0 && type.useExtraHeightUp())
                     || (deltaY < 0 && type.useExtraHeightDown());
-        }
-
-        EntityCluster group = entity.bb$getCluster();
-        if (group != null) {
-            //BibLog.log("Entity", entity, "is in group:", group);
         }
 
         return true;
@@ -326,6 +342,15 @@ public class DynamicActivationRange {
 
         if (!active) {
             final int inactiveTicks = current_tick - entity.bb$getActivatedUntilTick() - 1;
+
+            EntityCluster group = entity.bb$getCluster();
+            if (group != null) {
+                if (group.getScore() > 4 && current_tick % 200 != 0) {
+                    // Don't wake up if the group is too big
+                    return false;
+                }
+            }
+
             if (inactiveTicks % 20 == 0) {
                 // Check immunities every 20 inactive ticks.
                 final int immunity = checkEntityImmunities(entity, current_tick, DEFAULT_RANGE);
@@ -349,9 +374,10 @@ public class DynamicActivationRange {
      * Return the amount of ticks an entity should be immune for activation range checks.
      * @since    0.1.0
      */
-    public static int checkEntityImmunities(Entity entity, int currentTick, ActivationRange config) {
+    public static int checkEntityImmunities(Entity entity, int current_tick, ActivationRange config) {
 
-        final int inactiveWakeUpImmunity = checkInactiveWakeup(entity, currentTick);
+        final int inactiveWakeUpImmunity = checkInactiveWakeup(entity, current_tick);
+
         if (inactiveWakeUpImmunity > -1) {
             return inactiveWakeUpImmunity;
         }
@@ -360,7 +386,7 @@ public class DynamicActivationRange {
             return 2;
         }
 
-        if (entity.bb$getImmuneUntilTick() >= currentTick) {
+        if (entity.bb$getImmuneUntilTick() >= current_tick) {
             return 1;
         }
 
@@ -417,7 +443,7 @@ public class DynamicActivationRange {
                     }
 
                     final int immunityAfter = VILLAGER_WORK_IMMUNITY_AFTER;
-                    if (immunityAfter > 0 && (currentTick - mob.bb$getActivatedUntilTick()) >= immunityAfter) {
+                    if (immunityAfter > 0 && (current_tick - mob.bb$getActivatedUntilTick()) >= immunityAfter) {
                         if (brain.hasActivity(Activity.WORK)) {
                             return VILLAGER_WORK_IMMUNITY_FOR;
                         }
@@ -461,11 +487,6 @@ public class DynamicActivationRange {
 
         if (!range.wakeupAfterInactiveTicks()) {
             return -1;
-        }
-
-        EntityCluster group = entity.bb$getCluster();
-        if (group != null) {
-            //BibLog.log("Entity", entity, "is in group:", group);
         }
 
         int wakeup_interval = range.getInactiveWakeupInterval();
