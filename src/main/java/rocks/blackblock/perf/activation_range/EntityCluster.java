@@ -429,6 +429,14 @@ public class EntityCluster implements BibLog.Argable {
     }
 
     /**
+     * Get all the entities in this cluster
+     * @since 0.1.0
+     */
+    public List<Entity> getEntities() {
+        return this.entities;
+    }
+
+    /**
      * Return the BibLog.Arg representation of this cluster
      * @since 0.1.0
      */

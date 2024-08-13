@@ -2,13 +2,15 @@ package rocks.blackblock.perf.activation_range;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
-import rocks.blackblock.bib.util.BibLog;
+import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.interfaces.activation_range.HasEntityClusters;
+import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,12 +29,16 @@ public class EntityClusterManager implements HasEntityClusters {
     // The actual entity clusters
     private final List<EntityCluster> entity_clusters = new ArrayList<>(300);
 
+    // The performance info
+    private BibPerf.Info perf_info;
+
     /**
      * Initialize the manager
      * @since 0.1.0
      */
     public EntityClusterManager(@NotNull ServerWorld world) {
         this.world = world;
+        this.perf_info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
     }
 
     /**
@@ -158,7 +164,24 @@ public class EntityClusterManager implements HasEntityClusters {
         this.entity_clusters.addAll(merged_clusters);
 
         for (int i = 0; i < this.entity_clusters.size(); i++) {
-            this.entity_clusters.get(i).setId(i);
+            EntityCluster cluster = this.entity_clusters.get(i);
+            cluster.setId(i);
+
+            if (this.perf_info.isBusy() && cluster.getScore() > 5 && cluster.getSize() > 150) {
+                int forced_despawn_count = 0;
+                for (Entity entity : cluster.getEntities()) {
+                    if (entity instanceof MobEntity mob) {
+                        if (!mob.isPersistent() && !mob.cannotDespawn()) {
+                            mob.discard();
+                            forced_despawn_count++;
+                        }
+                    }
+
+                    if (forced_despawn_count > 60) {
+                        break;
+                    }
+                }
+            }
         }
     }
 
