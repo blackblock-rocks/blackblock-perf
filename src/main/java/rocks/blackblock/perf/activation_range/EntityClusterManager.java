@@ -7,6 +7,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.perf.interfaces.activation_range.HasEntityClusters;
 
 import java.util.ArrayList;
@@ -48,6 +49,8 @@ public class EntityClusterManager implements HasEntityClusters {
      * @since 0.1.0
      */
     public void recreateEntityGroups() {
+
+        long start = System.currentTimeMillis();
 
         // Remove all the old clusters
         this.entity_clusters.clear();
@@ -98,31 +101,65 @@ public class EntityClusterManager implements HasEntityClusters {
      * @since 0.1.0
      */
     private void mergeGroups() {
-        boolean merged;
-        do {
-            merged = false;
-            for (int i = 0; i < this.entity_clusters.size(); i++) {
-                EntityCluster group1 = this.entity_clusters.get(i);
-                if (group1.getSize() < EntityCluster.MIN_GROUP_SIZE_FOR_MERGE) continue;
 
-                for (int j = i + 1; j < this.entity_clusters.size(); j++) {
-                    EntityCluster group2 = this.entity_clusters.get(j);
-                    if (group2.getSize() < EntityCluster.MIN_GROUP_SIZE_FOR_MERGE) continue;
+        int iterations = 0;
 
-                    EntityCluster merged_cluster = this.tryMergeGroups(group1, group2);
+        // Create a spatial hash grid
+        SpatialHashGrid grid = new SpatialHashGrid(20.0); // Cell size of 20 blocks
 
-                    if (merged_cluster != null) {
-                        this.entity_clusters.set(i, merged_cluster);
-                        this.entity_clusters.remove(j);
-                        merged_cluster.setId(i);
-                        merged = true;
-                        break;
-                    }
-                }
+        // Add all clusters to the grid
+        for (EntityCluster cluster : this.entity_clusters) {
+            grid.addCluster(cluster);
+        }
 
-                if (merged) break;
+        List<EntityCluster> merged_clusters = new ArrayList<>();
+
+        int merge_count = 0;
+
+        while (!grid.isEmpty()) {
+            iterations++;
+
+            // Retrieve and remove the next cluster from the grid
+            EntityCluster cluster = grid.removeNextCluster();
+
+            // Get all the nearby groups
+            List<EntityCluster> nearby_clusters = grid.getNearbyGroups(cluster);
+
+            if (nearby_clusters.isEmpty()) {
+                merged_clusters.add(cluster);
+                continue;
             }
-        } while (merged);
+
+            boolean merged = false;
+            for (EntityCluster neighbour : nearby_clusters) {
+
+                EntityCluster merged_cluster = tryMergeGroups(cluster, neighbour);
+
+                if (merged_cluster != null) {
+                    merged = true;
+                    merge_count++;
+
+                    grid.addCluster(merged_cluster);
+                    cluster = merged_cluster;
+
+                    // Ensure neighbour is removed if merged successfully
+                    grid.removeCluster(neighbour);
+
+                    break;
+                }
+            }
+
+            if (!merged) {
+                merged_clusters.add(cluster);
+            }
+        }
+
+        this.entity_clusters.clear();
+        this.entity_clusters.addAll(merged_clusters);
+
+        for (int i = 0; i < this.entity_clusters.size(); i++) {
+            this.entity_clusters.get(i).setId(i);
+        }
     }
 
     /**
@@ -130,6 +167,10 @@ public class EntityClusterManager implements HasEntityClusters {
      * @since 0.1.0
      */
     private EntityCluster tryMergeGroups(EntityCluster group1, EntityCluster group2) {
+
+        if (group1 == group2) {
+            return null;
+        }
 
         // If both groups don't intersect, they can't merge
         if (!group1.getLargeMergeBox().intersects(group2.getLargeMergeBox())) {
@@ -189,32 +230,42 @@ public class EntityClusterManager implements HasEntityClusters {
      */
     private void createSuperClusters() {
 
-        // Create a copy of the list
-        List<EntityCluster> clusters = new ArrayList<>(this.entity_clusters);
+        int iterations = 0;
 
-        boolean merged;
-        do {
-            merged = false;
-            for (int i = 0; i < clusters.size(); i++) {
-                EntityCluster group1 = clusters.get(i);
+        // Create a spatial hash grid with a larger cell size for super clusters
+        SpatialHashGrid grid = new SpatialHashGrid(40.0); // Larger cell size for super clusters
 
-                for (int j = i + 1; j < clusters.size(); j++) {
-                    EntityCluster group2 = clusters.get(j);
+        // Add all clusters to the grid
+        for (EntityCluster cluster : this.entity_clusters) {
+            grid.addCluster(cluster);
+        }
 
-                    EntityCluster merged_cluster = this.tryMergeForSuperClusters(group1, group2);
+        int mergeCount = 0;
 
-                    if (merged_cluster != null) {
-                        clusters.set(i, merged_cluster);
-                        clusters.remove(j);
-                        merged_cluster.setId(i);
-                        merged = true;
-                        break;
-                    }
+        while (!grid.isEmpty()) {
+            iterations++;
+
+            // Retrieve and remove the next cluster from the grid
+            EntityCluster cluster = grid.removeNextCluster();
+
+            // Get all the nearby groups
+            List<EntityCluster> nearbyClusters = grid.getNearbyGroups(cluster);
+
+            boolean merged = false;
+            for (EntityCluster neighbour : nearbyClusters) {
+                EntityCluster mergedCluster = tryMergeForSuperClusters(cluster, neighbour);
+
+                if (mergedCluster != null) {
+                    merged = true;
+                    mergeCount++;
+
+                    grid.removeCluster(neighbour);
+                    grid.addCluster(mergedCluster);
+                    cluster = mergedCluster;
+                    break;
                 }
-
-                if (merged) break;
             }
-        } while (merged);
+        }
     }
 
     /**
@@ -223,8 +274,8 @@ public class EntityClusterManager implements HasEntityClusters {
      */
     private EntityCluster tryMergeForSuperClusters(EntityCluster group1, EntityCluster group2) {
 
-        Box box_1 = group1.getBoundingBox().expand(2);
-        Box box_2 = group2.getBoundingBox().expand(2);
+        Box box_1 = group1.getBoundingBox().expand(3);
+        Box box_2 = group2.getBoundingBox().expand(3);
 
         // If both groups don't intersect, they can't merge
         if (!box_1.intersects(box_2)) {

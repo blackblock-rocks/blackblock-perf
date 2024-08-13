@@ -85,7 +85,9 @@ public class ThreadPool {
     }
 
     public <T> void execute(Iterable<T> iterable, Consumer<T> action) {
-        iterable.forEach(t -> this.execute(() -> action.accept(t)));
+        for (T t : iterable) {
+            this.execute(() -> action.accept(t));
+        }
     }
 
     public <T> void execute(Stream<T> stream, Consumer<T> action) {

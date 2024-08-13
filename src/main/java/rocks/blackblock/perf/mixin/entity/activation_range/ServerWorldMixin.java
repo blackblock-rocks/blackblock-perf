@@ -52,11 +52,16 @@ public abstract class ServerWorldMixin implements HasEntityClusters {
                     target = "Lnet/minecraft/world/EntityList;forEach(Ljava/util/function/Consumer;)V"
             )
     )
-    private void bb$activateEntities(BooleanSupplier booleanSupplier, CallbackInfo ci) {
+    private void bb$optimizeEntityActivation(BooleanSupplier booleanSupplier, CallbackInfo ci) {
         final int current_tick = this.server.getTicks();
 
         if (current_tick % 20 == 0) {
-            this.entity_cluster_manager.recreateEntityGroups();
+
+            // Recreate the entity groups every 4 seconds
+            if (current_tick % 80 == 0) {
+                this.entity_cluster_manager.recreateEntityGroups();
+            }
+
             DynamicActivationRange.triggerActivation(this.bb$self, current_tick);
         }
     }

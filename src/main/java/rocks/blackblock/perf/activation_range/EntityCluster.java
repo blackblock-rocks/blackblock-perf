@@ -80,8 +80,16 @@ public class EntityCluster implements BibLog.Argable {
      */
     public EntityCluster(EntityCluster group1, EntityCluster group2) {
         this.world = group1.world;
-        this.entities = new ArrayList<>(group1.entities);
-        this.entities.addAll(group2.entities);
+        this.entities = new ArrayList<>(group1.entities.size() + group2.entities.size());
+
+        for (Entity entity : group1.entities) {
+            this.addEntitySilently(entity);
+        }
+
+        for (Entity entity : group2.entities) {
+            this.addEntitySilently(entity);
+        }
+
         this.recalculateBoundingBox();
         this.id = -1;
     }
@@ -148,9 +156,17 @@ public class EntityCluster implements BibLog.Argable {
      * @since 0.1.0
      */
     public void addEntity(Entity entity) {
-        entities.add(entity);
-        entity.bb$setCluster(this);
+        this.addEntitySilently(entity);
         this.addEntityToBoundingBox(entity);
+    }
+
+    /**
+     * Add an entity to this cluster silently
+     * @since 0.1.0
+     */
+    private void addEntitySilently(Entity entity) {
+        this.entities.add(entity);
+        entity.bb$setCluster(this);
     }
 
     /**
