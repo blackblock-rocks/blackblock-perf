@@ -43,7 +43,14 @@
         "spawn.SpawnGroupMixin",
         "spawn.SpawnHelperInfoMixin",
         "spawn.SpawnHelperMixin",
-        "spawn.ZombieMixin"
+        "spawn.ZombieMixin",
+        "sync_load.BeeEntityMixin",
+        "sync_load.EntityGameEventHandlerMixin",
+        "sync_load.FilledMapItemMixin",
+        "sync_load.MobNavigationMixin",
+        "sync_load.ServerWorldMixin",
+        "sync_load.SleepTaskMixin",
+        "sync_load.StepAndDestroyBlockGoalMixin"
     ],
     "injectors": {
         "defaultRequire": 1
