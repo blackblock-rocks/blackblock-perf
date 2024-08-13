@@ -6,25 +6,36 @@ import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.command.CommandCreator;
 import rocks.blackblock.bib.command.CommandLeaf;
+import rocks.blackblock.bib.debug.rendering.RenderLayer;
+import rocks.blackblock.bib.debug.rendering.shapes.BoxShape;
+import rocks.blackblock.bib.debug.rendering.shapes.payload.DebugShapesPayload;
 import rocks.blackblock.bib.player.BlackblockPlayer;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.bib.util.BibServer;
 import rocks.blackblock.bib.util.BibText;
 import rocks.blackblock.perf.activation_range.ActivationRange;
+import rocks.blackblock.perf.activation_range.EntityCluster;
+import rocks.blackblock.perf.interfaces.activation_range.HasEntityClusters;
 import rocks.blackblock.perf.interfaces.distances.CustomDistances;
 import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.thread.HasPerformanceInfo;
+
+import java.util.List;
 
 @ApiStatus.Internal
 public class PerfCommands {
@@ -215,6 +226,53 @@ public class PerfCommands {
             source.sendFeedback(lore, false);
             return 1;
         });
+
+        CommandLeaf debug_renderer_leaf = entities_leaf.getChild("debug-renderer");
+        debug_renderer_leaf.onExecute(PerfCommands::performDebugRenderer);
+    }
+
+    private static int performDebugRenderer(CommandContext<ServerCommandSource> context) {
+
+        var source = context.getSource();
+        var player = source.getPlayer();
+
+        if (player == null) {
+            return 0;
+        }
+
+        var world = player.getServerWorld();
+        var groups = ((HasEntityClusters) world).bb$getEntityClusters();
+
+        if (groups == null || groups.isEmpty()) {
+            source.sendFeedback(() -> Text.literal("No entity groups found"), false);
+            return 1;
+        }
+
+        DebugShapesPayload.clearAllShapes(player);
+
+        int i = 0;
+        for (EntityCluster group : groups) {
+
+            i++;
+            Box box = group.getSmallMergeBox();
+            BoxShape debug_box = new BoxShape(box.getMinPos(), box.getMaxPos(), 0x33FF0055, RenderLayer.MIXED, 0xFF00FF00, RenderLayer.MIXED, 4f);
+
+            Identifier shapeId = Identifier.of("blackblock", "debug_box_" + i);
+
+            DebugShapesPayload.sendToPlayer(source.getPlayer(), List.of(new DebugShapesPayload.Set(shapeId, debug_box)));
+        }
+
+        return 1;
+    }
+
+    private record DebugPayload(PacketByteBuf buf) implements CustomPayload {
+        public static final CustomPayload.Id<DebugPayload> ID = new CustomPayload.Id<>(Identifier.of("debug", "shapes"));
+        //public static final PacketCodec<RegistryByteBuf, DebugPayload> CODEC = PacketCodec.tuple(BlockPos.PACKET_CODEC, DebugPayload::buf, DebugPayload::new);
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return ID;
+        }
     }
 
     private static void registerFakePlayerCommand(CommandLeaf perf) {

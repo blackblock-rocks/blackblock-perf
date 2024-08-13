@@ -291,6 +291,11 @@ public class DynamicActivationRange {
                     || (deltaY < 0 && type.useExtraHeightDown());
         }
 
+        EntityCluster group = entity.bb$getCluster();
+        if (group != null) {
+            //BibLog.log("Entity", entity, "is in group:", group);
+        }
+
         return true;
     }
 
@@ -456,6 +461,11 @@ public class DynamicActivationRange {
 
         if (!range.wakeupAfterInactiveTicks()) {
             return -1;
+        }
+
+        EntityCluster group = entity.bb$getCluster();
+        if (group != null) {
+            //BibLog.log("Entity", entity, "is in group:", group);
         }
 
         int wakeup_interval = range.getInactiveWakeupInterval();

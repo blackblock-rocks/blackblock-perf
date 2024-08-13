@@ -37,7 +37,8 @@
 			],
 			"net/minecraft/class_1297": [
 				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable",
-				"rocks/blackblock/perf/interfaces/activation_range/DeactivatableEntity"
+				"rocks/blackblock/perf/interfaces/activation_range/DeactivatableEntity",
+				"rocks/blackblock/perf/interfaces/activation_range/ClusteredEntity"
 			],
 			"net/minecraft/class_1355": [
 				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable"

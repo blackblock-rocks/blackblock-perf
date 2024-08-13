@@ -1,6 +1,5 @@
 package rocks.blackblock.perf.mixin.entity.activation_range;
 
-import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
@@ -15,7 +14,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rocks.blackblock.perf.activation_range.ActivationRange;
 import rocks.blackblock.perf.activation_range.DynamicActivationRange;
+import rocks.blackblock.perf.activation_range.EntityCluster;
 import rocks.blackblock.perf.interfaces.activation_range.DeactivatableEntity;
+import rocks.blackblock.perf.interfaces.activation_range.ClusteredEntity;
 import rocks.blackblock.perf.interfaces.activation_range.InactiveTickable;
 
 /**
@@ -25,7 +26,7 @@ import rocks.blackblock.perf.interfaces.activation_range.InactiveTickable;
  * @since    0.1.0
  */
 @Mixin(Entity.class)
-public class EntityMixin implements DeactivatableEntity, InactiveTickable {
+public class EntityMixin implements DeactivatableEntity, InactiveTickable, ClusteredEntity {
 
     @Shadow private World world;
     @Unique
@@ -48,6 +49,9 @@ public class EntityMixin implements DeactivatableEntity, InactiveTickable {
 
     @Unique
     private boolean bb$inactive;
+
+    @Unique
+    private EntityCluster bb$cluster = null;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void bb$setupActivationStates(EntityType<?> type, World world, CallbackInfo ci) {
@@ -143,5 +147,15 @@ public class EntityMixin implements DeactivatableEntity, InactiveTickable {
     @Override
     public void bb$inactiveTick() {
         // no-op
+    }
+
+    @Override
+    public EntityCluster bb$getCluster() {
+        return this.bb$cluster;
+    }
+
+    @Override
+    public void bb$setCluster(EntityCluster cluster) {
+        this.bb$cluster = cluster;
     }
 }

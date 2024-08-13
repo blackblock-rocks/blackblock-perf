@@ -15,7 +15,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rocks.blackblock.perf.activation_range.DynamicActivationRange;
+import rocks.blackblock.perf.activation_range.EntityCluster;
+import rocks.blackblock.perf.activation_range.EntityClusterManager;
+import rocks.blackblock.perf.interfaces.activation_range.HasEntityClusters;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -25,7 +29,7 @@ import java.util.function.BooleanSupplier;
  * @since    0.1.0
  */
 @Mixin(ServerWorld.class)
-public class ServerWorldMixin {
+public abstract class ServerWorldMixin implements HasEntityClusters {
 
     @Unique
     private final ServerWorld bb$self = (ServerWorld) (Object) this;
@@ -33,6 +37,9 @@ public class ServerWorldMixin {
     @Shadow
     @Final
     private MinecraftServer server;
+
+    @Unique
+    private EntityClusterManager entity_cluster_manager = new EntityClusterManager(bb$self);
 
     /**
      * Check all entities in this world
@@ -49,8 +56,19 @@ public class ServerWorldMixin {
         final int current_tick = this.server.getTicks();
 
         if (current_tick % 20 == 0) {
+            this.entity_cluster_manager.recreateEntityGroups();
             DynamicActivationRange.triggerActivation(this.bb$self, current_tick);
         }
+    }
+
+    /**
+     * Get the entity groups
+     * @since 0.1.0
+     */
+    @Override
+    @Unique
+    public List<EntityCluster> bb$getEntityClusters() {
+        return this.entity_cluster_manager.bb$getEntityClusters();
     }
 
     /**
@@ -87,7 +105,7 @@ public class ServerWorldMixin {
                     target = "Lnet/minecraft/entity/Entity;tickRiding()V"
             )
     )
-    private boolean servercore$shouldTickPassenger(Entity passenger, Entity vehicle, Entity ignored) {
+    private boolean bb$shouldTickPassenger(Entity passenger, Entity vehicle, Entity ignored) {
         if (DynamicActivationRange.checkIfActive(passenger, this.server.getTicks())) {
             passenger.bb$setInactive(false);
             passenger.age++;
