@@ -9,10 +9,8 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
@@ -31,6 +29,7 @@ import rocks.blackblock.bib.util.BibText;
 import rocks.blackblock.perf.activation_range.ActivationRange;
 import rocks.blackblock.perf.activation_range.EntityCluster;
 import rocks.blackblock.perf.interfaces.activation_range.HasEntityClusters;
+import rocks.blackblock.perf.interfaces.chunk_ticking.TickableChunkSource;
 import rocks.blackblock.perf.interfaces.distances.CustomDistances;
 import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.thread.HasPerformanceInfo;
@@ -56,23 +55,70 @@ public class PerfCommands {
     private static int onExecutePerfInfo(CommandContext<ServerCommandSource> context) {
 
         var source = context.getSource();
+        var player = source.getPlayer();
+        ServerWorld source_world = null;
+
+        if (player != null) {
+            source_world = player.getServerWorld();
+        }
 
         BibText.Lore lore = BibText.createLore();
-        lore.addLine("Threading", DynamicThreads.THREADS_ENABLED ? Text.literal("enabled").formatted(Formatting.GREEN) : Text.literal("disabled").formatted(Formatting.RED));
+
+        lore.addLine(Text.literal("⚡ Performance Info ⚡").setStyle(Style.EMPTY.withBold(true).withUnderline(true)));
+
+        if (source_world != null) {
+            lore.addLine(Text.literal("World: ").append(Text.literal(source_world.getRegistryKey().getValue().getPath()).formatted(Formatting.AQUA)));
+        }
 
         if (DynamicThreads.THREADS_ENABLED) {
             lore.addLine("Threadcount", DynamicThreads.THREADS_COUNT);
-            lore.addLine("World: Loaded chunks / MSPT / TPS / Load / State / Simulation / View Distance");
 
             for (var world : BibServer.getServer().getWorlds()) {
-                BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
-                Text world_name = Text.literal(world.getRegistryKey().getValue().getPath());
-                MutableText line = info.toTextLine();
-                line = line.append(" / ").append(Text.literal(((CustomDistances) world).bb$getSimulationDistance() + "").formatted(Formatting.AQUA));
-                line = line.append(" / ").append(Text.literal(((CustomDistances) world).bb$getViewDistance() + "").formatted(Formatting.AQUA));
 
-                lore.addLine(world_name.copy().append(": ").append(line));
+                if (source_world == null) {
+                    lore.addLine("");
+                    lore.addLine(Text.literal("World: ").append(Text.literal(world.getRegistryKey().getValue().getPath()).formatted(Formatting.AQUA)));
+                } else if (source_world != world) {
+                    continue;
+                }
+
+                BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+
+                int loaded_chunks = world.getChunkManager().getLoadedChunkCount();
+                int active_chunks = ((TickableChunkSource) world.getChunkManager().chunkLoadingManager).bb$tickableChunkMap().size();
+
+                MutableText loaded_chunk_text = Text.literal(loaded_chunks + "")
+                        .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Loaded chunks"))))
+                        .formatted(Formatting.AQUA);
+
+                MutableText active_chunk_text = Text.literal(active_chunks + "")
+                        .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Active chunks"))))
+                        .formatted(Formatting.AQUA);
+
+                lore.addLine("Chunks", loaded_chunk_text.append(Text.literal(" / ").formatted(Formatting.GRAY)).append(active_chunk_text));
+                lore.addLine("MSPT", info.getMsptText());
+                lore.addLine("TPS", info.getTpsText());
+
+                int player_count = world.getPlayers().size();
+                long afk_count = world.getPlayers().stream().filter(fplayer -> ((BlackblockPlayer) fplayer).bb$isAfk()).count();
+
+                lore.addLine("Players", Text.literal(player_count + "")
+                    .formatted(Formatting.AQUA)
+                    .append(Text.literal(" (").formatted(Formatting.GRAY))
+                    .append(Text.literal(afk_count + " AFK").formatted(Formatting.GRAY))
+                    .append(Text.literal(")").formatted(Formatting.GRAY))
+                );
+
+                MutableText distance_text = Text.literal(((CustomDistances) world).bb$getSimulationDistance() + "").formatted(Formatting.AQUA)
+                        .append(Text.literal(" / ").formatted(Formatting.GRAY))
+                        .append(Text.literal(((CustomDistances) world).bb$getViewDistance() + "").formatted(Formatting.AQUA));
+
+                lore.addLine("State", info.getStateText());
+
+                lore.addLine("Distance", distance_text);
             }
+        } else {
+            lore.addLine("Threading not enabled!");
         }
 
         source.sendFeedback(lore, false);

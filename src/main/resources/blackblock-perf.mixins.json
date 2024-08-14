@@ -11,6 +11,8 @@
         "WorldAccessMixin",
         "WorldAccessor",
         "WorldMixin",
+        "chunk_ticking.ServerChunkLoadingManagerMixin",
+        "chunk_ticking.ServerChunkManagerMixin",
         "distance.ServerWorldMixin",
         "distance.WorldMixin",
         "entity.activation_range.EntityMixin",
