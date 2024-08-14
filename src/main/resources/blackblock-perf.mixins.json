@@ -42,6 +42,7 @@
         "entity.villager_lobotomy.VillagerEntityMixin",
         "entity_tracking.EntityTrackerMixin",
         "entity_tracking.ServerChunkLoadingManagerMixin",
+        "no_palette_locking.PalettedContainerMixin",
         "spawn.InfestedStatusEffectMixin",
         "spawn.MobSpawnerLogicMixin",
         "spawn.NetherPortalBlockMixin",
