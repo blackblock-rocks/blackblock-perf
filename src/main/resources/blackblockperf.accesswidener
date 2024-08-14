@@ -31,3 +31,8 @@ accessible class net/minecraft/server/world/ChunkTicketManager$NearbyChunkTicket
 accessible field net/minecraft/server/world/ServerChunkLoadingManager mainThreadExecutor Lnet/minecraft/util/thread/ThreadExecutor;
 accessible method net/minecraft/world/chunk/AbstractChunkHolder updateStatus (Lnet/minecraft/server/world/ServerChunkLoadingManager;)V
 accessible method net/minecraft/server/world/ChunkHolder updateFutures (Lnet/minecraft/server/world/ServerChunkLoadingManager;Ljava/util/concurrent/Executor;)V
+
+# Chunk watching optimizations
+accessible method net/minecraft/server/world/ChunkTicketManager shouldTick (J)Z
+accessible class net/minecraft/server/world/ServerChunkLoadingManager$TicketManager
+accessible field net/minecraft/server/world/ServerChunkLoadingManager watchDistance I

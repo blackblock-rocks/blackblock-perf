@@ -10,7 +10,6 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.interfaces.activation_range.HasEntityClusters;
-import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
 import java.util.ArrayList;
 import java.util.List;
