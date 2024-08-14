@@ -21,7 +21,7 @@ import rocks.blackblock.bib.command.CommandLeaf;
 import rocks.blackblock.bib.debug.rendering.RenderLayer;
 import rocks.blackblock.bib.debug.rendering.shapes.BoxShape;
 import rocks.blackblock.bib.debug.rendering.shapes.payload.DebugShapesPayload;
-import rocks.blackblock.bib.player.BlackblockPlayer;
+import rocks.blackblock.bib.player.PlayerActivityInfo;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.bib.util.BibServer;
@@ -100,7 +100,7 @@ public class PerfCommands {
                 lore.addLine("TPS", info.getTpsText());
 
                 int player_count = world.getPlayers().size();
-                long afk_count = world.getPlayers().stream().filter(fplayer -> ((BlackblockPlayer) fplayer).bb$isAfk()).count();
+                long afk_count = world.getPlayers().stream().filter(fplayer -> ((PlayerActivityInfo) fplayer).bb$isAfk()).count();
 
                 lore.addLine("Players", Text.literal(player_count + "")
                     .formatted(Formatting.AQUA)
@@ -140,7 +140,7 @@ public class PerfCommands {
             var source = context.getSource();
 
             BibServer.getServer().getPlayerManager().getPlayerList().forEach(player -> {
-                ((BlackblockPlayer) player).bb$setIsStationary(true);
+                ((PlayerActivityInfo) player).bb$setIsStationary(true);
                 source.sendFeedback(() -> Text.literal("Marked player ").append(Text.literal(player.getNameForScoreboard()).formatted(Formatting.AQUA)).append(" as stationary"), true);
             });
 
@@ -155,10 +155,10 @@ public class PerfCommands {
 
             BibServer.getServer().getPlayerManager().getPlayerList().forEach(player -> {
 
-                int ticks_since_last_movement = ((BlackblockPlayer) player).bb$getTicksSinceLastMovement();
+                int ticks_since_last_movement = ((PlayerActivityInfo) player).bb$getTicksSinceLastMovement();
                 BibLog.log("Ticks since last movement:", player, ticks_since_last_movement);
 
-                if (((BlackblockPlayer) player).bb$isAfk()) {
+                if (((PlayerActivityInfo) player).bb$isAfk()) {
                     source.sendFeedback(() -> Text.literal("Player ").append(Text.literal(player.getNameForScoreboard()).formatted(Formatting.AQUA)).append(" is AFK"), false);
                 }
             });

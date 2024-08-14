@@ -19,8 +19,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
-import rocks.blackblock.bib.player.BlackblockPlayer;
-import rocks.blackblock.bib.util.BibLog;
+import rocks.blackblock.bib.player.PlayerActivityInfo;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
@@ -247,7 +246,7 @@ public class DynamicActivationRange {
             }
 
             // Ignore AFK players when the server is busy
-            if ((info.isRandomlyDisabled() || info.isCritical()) && ((BlackblockPlayer) player).bb$isAfk()) {
+            if ((info.isRandomlyDisabled() || info.isCritical()) && ((PlayerActivityInfo) player).bb$isAfk()) {
                 continue;
             }
 
@@ -284,7 +283,7 @@ public class DynamicActivationRange {
                 return false;
             }
 
-            boolean is_afk = ((BlackblockPlayer) player).bb$isAfk();
+            boolean is_afk = ((PlayerActivityInfo) player).bb$isAfk();
 
             if (group.getScore() > 6 && is_afk) {
                 return false;

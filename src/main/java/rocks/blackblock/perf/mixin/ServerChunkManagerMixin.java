@@ -14,7 +14,8 @@ import rocks.blackblock.perf.thread.WithMutableThread;
 @Mixin(value = ServerChunkManager.class, priority = 1001)
 public abstract class ServerChunkManagerMixin extends ChunkManager implements WithMutableThread {
 
-    @Shadow private Thread serverThread;
+    @Shadow
+    Thread serverThread;
 
     @Override
     @Unique

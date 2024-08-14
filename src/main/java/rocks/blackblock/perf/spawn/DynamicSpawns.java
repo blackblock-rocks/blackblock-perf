@@ -13,7 +13,7 @@ import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.bv.parameter.IntegerParameter;
 import rocks.blackblock.bib.bv.parameter.MapParameter;
 import rocks.blackblock.bib.bv.value.BvInteger;
-import rocks.blackblock.bib.player.BlackblockPlayer;
+import rocks.blackblock.bib.player.PlayerActivityInfo;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.BlackblockPerf;
@@ -142,7 +142,7 @@ public class DynamicSpawns {
 
         for (ServerPlayerEntity player : getPlayersNear(world, new ChunkPos(pos))) {
 
-            if (((BlackblockPlayer) player).bb$isAfk() && info.isRandomlyDisabled()) {
+            if (((PlayerActivityInfo) player).bb$isAfk() && info.isRandomlyDisabled()) {
                 continue;
             }
 
@@ -177,7 +177,7 @@ public class DynamicSpawns {
     public static boolean hasActivePlayersNear(ServerWorld world, ChunkPos pos) {
 
         for (ServerPlayerEntity player : getPlayersNear(world, pos)) {
-            if (!((BlackblockPlayer) player).bb$isAfk()) {
+            if (!((PlayerActivityInfo) player).bb$isAfk()) {
                 return true;
             }
         }
