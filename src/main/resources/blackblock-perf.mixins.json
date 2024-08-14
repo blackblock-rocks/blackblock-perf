@@ -39,6 +39,8 @@
         "entity.despawn_holding_garbage.MobEntityMixin",
         "entity.move_zero_velocity.EntityMixin",
         "entity.villager_lobotomy.VillagerEntityMixin",
+        "entity_tracking.EntityTrackerMixin",
+        "entity_tracking.ServerChunkLoadingManagerMixin",
         "spawn.InfestedStatusEffectMixin",
         "spawn.MobSpawnerLogicMixin",
         "spawn.NetherPortalBlockMixin",

@@ -18,3 +18,9 @@ accessible field net/minecraft/entity/mob/MobEntity goalSelector Lnet/minecraft/
 accessible field net/minecraft/entity/mob/MobEntity targetSelector Lnet/minecraft/entity/ai/goal/GoalSelector;
 accessible field net/minecraft/server/world/ServerChunkManager ticketManager Lnet/minecraft/server/world/ChunkTicketManager;
 accessible method net/minecraft/server/world/ChunkTicketManager setWatchDistance (I)V
+
+# Entity tracker optimizations
+accessible class net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker
+accessible method net/minecraft/server/world/ServerChunkLoadingManager getCurrentChunkHolder (J)Lnet/minecraft/server/world/ChunkHolder;
+accessible method net/minecraft/server/world/ServerChunkLoadingManager getChunkHolder (J)Lnet/minecraft/server/world/ChunkHolder;
+accessible field net/minecraft/server/world/ServerChunkLoadingManager world Lnet/minecraft/server/world/ServerWorld;
