@@ -43,6 +43,9 @@
 			"net/minecraft/class_3215": [
 				"rocks/blackblock/perf/thread/WithMutableThread"
 			],
+			"net/minecraft/class_3218": [
+				"rocks/blackblock/perf/interfaces/activation_range/HasEntityClusters"
+			],
 			"net/minecraft/class_3898": [
 				"rocks/blackblock/perf/interfaces/chunk_ticking/TickableChunkSource"
 			]

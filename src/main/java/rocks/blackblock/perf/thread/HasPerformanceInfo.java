@@ -9,5 +9,7 @@ import rocks.blackblock.bib.util.BibPerf;
  * @since    0.1.0
  */
 public interface HasPerformanceInfo {
-    BibPerf.Info bb$getPerformanceInfo();
+    default BibPerf.Info bb$getPerformanceInfo() {
+        return null;
+    }
 }

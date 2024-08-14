@@ -12,5 +12,7 @@ import java.util.List;
  * @since    0.1.0
  */
 public interface HasEntityClusters {
-    List<EntityCluster> bb$getEntityClusters();
+    default List<EntityCluster> bb$getEntityClusters() {
+        return null;
+    }
 }

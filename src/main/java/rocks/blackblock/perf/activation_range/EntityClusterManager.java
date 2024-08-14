@@ -38,7 +38,7 @@ public class EntityClusterManager implements HasEntityClusters {
      */
     public EntityClusterManager(@NotNull ServerWorld world) {
         this.world = world;
-        this.perf_info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+        this.perf_info = world.bb$getPerformanceInfo();
     }
 
     /**

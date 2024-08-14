@@ -138,11 +138,11 @@ public class DynamicSpawns {
             return false;
         }
 
-        var info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+        var info = world.bb$getPerformanceInfo();
 
         for (ServerPlayerEntity player : getPlayersNear(world, new ChunkPos(pos))) {
 
-            if (((PlayerActivityInfo) player).bb$isAfk() && info.isRandomlyDisabled()) {
+            if (player.bb$isAfk() && info.isRandomlyDisabled()) {
                 continue;
             }
 
@@ -177,7 +177,7 @@ public class DynamicSpawns {
     public static boolean hasActivePlayersNear(ServerWorld world, ChunkPos pos) {
 
         for (ServerPlayerEntity player : getPlayersNear(world, pos)) {
-            if (!((PlayerActivityInfo) player).bb$isAfk()) {
+            if (!player.bb$isAfk()) {
                 return true;
             }
         }

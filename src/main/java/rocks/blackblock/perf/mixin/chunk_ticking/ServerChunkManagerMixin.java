@@ -6,7 +6,6 @@ import net.minecraft.server.world.ServerChunkManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import rocks.blackblock.perf.interfaces.chunk_ticking.TickableChunkSource;
 
 /**
  * Only iterate over the tickable chunks
@@ -25,6 +24,6 @@ public class ServerChunkManagerMixin {
         )
     )
     private Iterable<ChunkHolder> bb$redirectVisibleChunks(ServerChunkLoadingManager instance) {
-        return ((TickableChunkSource) instance).bb$tickableChunksIterator();
+        return instance.bb$tickableChunksIterator();
     }
 }

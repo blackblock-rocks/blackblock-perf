@@ -53,7 +53,7 @@ public abstract class SpawnHelperMixin {
         }
 
         int interval = category.bb$getSpawnInterval(world);
-        BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+        BibPerf.Info info = world.bb$getPerformanceInfo();
 
         if (info.isBusy()) {
             interval += 1;
@@ -85,7 +85,7 @@ public abstract class SpawnHelperMixin {
             return;
         }
 
-        var perf_info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+        var perf_info = world.bb$getPerformanceInfo();
 
         if (perf_info.isBusy()) {
 

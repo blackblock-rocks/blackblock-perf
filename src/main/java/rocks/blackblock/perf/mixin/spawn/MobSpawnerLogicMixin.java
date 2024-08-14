@@ -38,7 +38,7 @@ public abstract class MobSpawnerLogicMixin {
     )
     private void bb$enforceMobcap(ServerWorld world, BlockPos pos, CallbackInfo ci, @Local(ordinal = 0) Entity entity) {
 
-        BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+        BibPerf.Info info = world.bb$getPerformanceInfo();
 
         if (info.isRandomlyDisabled()) {
             ci.cancel();

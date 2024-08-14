@@ -115,7 +115,7 @@ public abstract class MinecraftServerMixin {
 
             long duration = System.currentTimeMillis() - start;
 
-            BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+            BibPerf.Info info = world.bb$getPerformanceInfo();
             info.aggregateMspt(duration);
 
             if (is_new_second) {

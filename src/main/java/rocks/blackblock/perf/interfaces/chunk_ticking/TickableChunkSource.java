@@ -10,7 +10,9 @@ import net.minecraft.server.world.ChunkHolder;
  * @since    0.1.0
  */
 public interface TickableChunkSource {
-    Long2ObjectLinkedOpenHashMap<ChunkHolder> bb$tickableChunkMap();
+    default Long2ObjectLinkedOpenHashMap<ChunkHolder> bb$tickableChunkMap() {
+        return null;
+    }
 
     default Iterable<ChunkHolder> bb$tickableChunksIterator() {
         return this.bb$tickableChunkMap().values();

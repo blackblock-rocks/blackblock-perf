@@ -236,7 +236,7 @@ public class DynamicActivationRange {
         max_range = Math.max(world.getServer().getPlayerManager().getViewDistance(), max_range);
 
         // Get the world perf info
-        BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+        BibPerf.Info info =  world.bb$getPerformanceInfo();
 
         for (ServerPlayerEntity player : world.getPlayers()) {
 
@@ -246,7 +246,7 @@ public class DynamicActivationRange {
             }
 
             // Ignore AFK players when the server is busy
-            if ((info.isRandomlyDisabled() || info.isCritical()) && ((PlayerActivityInfo) player).bb$isAfk()) {
+            if ((info.isRandomlyDisabled() || info.isCritical()) && player.bb$isAfk()) {
                 continue;
             }
 
@@ -283,7 +283,7 @@ public class DynamicActivationRange {
                 return false;
             }
 
-            boolean is_afk = ((PlayerActivityInfo) player).bb$isAfk();
+            boolean is_afk = player.bb$isAfk();
 
             if (group.getScore() > 6 && is_afk) {
                 return false;

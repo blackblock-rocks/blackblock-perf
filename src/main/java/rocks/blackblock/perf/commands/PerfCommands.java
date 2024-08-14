@@ -82,10 +82,10 @@ public class PerfCommands {
                     continue;
                 }
 
-                BibPerf.Info info = ((HasPerformanceInfo) world).bb$getPerformanceInfo();
+                BibPerf.Info info = world.bb$getPerformanceInfo();
 
                 int loaded_chunks = world.getChunkManager().getLoadedChunkCount();
-                int active_chunks = ((TickableChunkSource) world.getChunkManager().chunkLoadingManager).bb$tickableChunkMap().size();
+                int active_chunks = world.getChunkManager().chunkLoadingManager.bb$tickableChunkMap().size();
 
                 MutableText loaded_chunk_text = Text.literal(loaded_chunks + "")
                         .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Loaded chunks"))))
@@ -100,7 +100,7 @@ public class PerfCommands {
                 lore.addLine("TPS", info.getTpsText());
 
                 int player_count = world.getPlayers().size();
-                long afk_count = world.getPlayers().stream().filter(fplayer -> ((PlayerActivityInfo) fplayer).bb$isAfk()).count();
+                long afk_count = world.getPlayers().stream().filter(PlayerActivityInfo::bb$isAfk).count();
 
                 lore.addLine("Players", Text.literal(player_count + "")
                     .formatted(Formatting.AQUA)
@@ -109,9 +109,9 @@ public class PerfCommands {
                     .append(Text.literal(")").formatted(Formatting.GRAY))
                 );
 
-                MutableText distance_text = Text.literal(((CustomDistances) world).bb$getSimulationDistance() + "").formatted(Formatting.AQUA)
+                MutableText distance_text = Text.literal(world.bb$getSimulationDistance() + "").formatted(Formatting.AQUA)
                         .append(Text.literal(" / ").formatted(Formatting.GRAY))
-                        .append(Text.literal(((CustomDistances) world).bb$getViewDistance() + "").formatted(Formatting.AQUA));
+                        .append(Text.literal(world.bb$getViewDistance() + "").formatted(Formatting.AQUA));
 
                 lore.addLine("State", info.getStateText());
 
@@ -158,7 +158,7 @@ public class PerfCommands {
                 int ticks_since_last_movement = ((PlayerActivityInfo) player).bb$getTicksSinceLastMovement();
                 BibLog.log("Ticks since last movement:", player, ticks_since_last_movement);
 
-                if (((PlayerActivityInfo) player).bb$isAfk()) {
+                if (player.bb$isAfk()) {
                     source.sendFeedback(() -> Text.literal("Player ").append(Text.literal(player.getNameForScoreboard()).formatted(Formatting.AQUA)).append(" is AFK"), false);
                 }
             });
@@ -287,7 +287,7 @@ public class PerfCommands {
         }
 
         var world = player.getServerWorld();
-        var groups = ((HasEntityClusters) world).bb$getEntityClusters();
+        var groups = world.bb$getEntityClusters();
 
         if (groups == null || groups.isEmpty()) {
             source.sendFeedback(() -> Text.literal("No entity groups found"), false);
