@@ -13,6 +13,7 @@
         "WorldMixin",
         "chunk_ticking.ServerChunkLoadingManagerMixin",
         "chunk_ticking.ServerChunkManagerMixin",
+        "density_cap_access.DensityCapMixin",
         "distance.ServerWorldMixin",
         "distance.WorldMixin",
         "entity.activation_range.EntityMixin",
