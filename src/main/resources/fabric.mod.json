@@ -21,27 +21,27 @@
 	},
 	"custom": {
 		"loom:injected_interfaces": {
-			"net/minecraft/class_3215": [
-				"rocks/blackblock/perf/thread/WithMutableThread"
+			"net/minecraft/class_1297": [
+				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable",
+				"rocks/blackblock/perf/interfaces/activation_range/DeactivatableEntity",
+				"rocks/blackblock/perf/interfaces/activation_range/ClusteredEntity"
+			],
+			"net/minecraft/class_1311": [
+				"rocks/blackblock/perf/spawn/CustomSpawnGroupLimits"
+			],
+			"net/minecraft/class_1355": [
+				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable"
+			],
+			"net/minecraft/class_1936": [
+				"rocks/blackblock/perf/thread/HasPerformanceInfo"
 			],
 			"net/minecraft/class_1937": [
 				"rocks/blackblock/perf/thread/WithMutableThread",
 				"rocks/blackblock/perf/thread/HasPerformanceInfo",
 				"rocks/blackblock/perf/interfaces/distances/CustomDistances"
 			],
-			"net/minecraft/class_1936": [
-				"rocks/blackblock/perf/thread/HasPerformanceInfo"
-			],
-			"net/minecraft/class_1311": [
-				"rocks/blackblock/perf/spawn/CustomSpawnGroupLimits"
-			],
-			"net/minecraft/class_1297": [
-				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable",
-				"rocks/blackblock/perf/interfaces/activation_range/DeactivatableEntity",
-				"rocks/blackblock/perf/interfaces/activation_range/ClusteredEntity"
-			],
-			"net/minecraft/class_1355": [
-				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable"
+			"net/minecraft/class_3215": [
+				"rocks/blackblock/perf/thread/WithMutableThread"
 			],
 			"net/minecraft/class_3898": [
 				"rocks/blackblock/perf/interfaces/chunk_ticking/TickableChunkSource"
