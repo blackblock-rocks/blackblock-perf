@@ -24,3 +24,10 @@ accessible class net/minecraft/server/world/ServerChunkLoadingManager$EntityTrac
 accessible method net/minecraft/server/world/ServerChunkLoadingManager getCurrentChunkHolder (J)Lnet/minecraft/server/world/ChunkHolder;
 accessible method net/minecraft/server/world/ServerChunkLoadingManager getChunkHolder (J)Lnet/minecraft/server/world/ChunkHolder;
 accessible field net/minecraft/server/world/ServerChunkLoadingManager world Lnet/minecraft/server/world/ServerWorld;
+
+# Ticket propagation
+accessible class net/minecraft/server/world/ChunkTicketManager$TicketDistanceLevelPropagator
+accessible class net/minecraft/server/world/ChunkTicketManager$NearbyChunkTicketUpdater
+accessible field net/minecraft/server/world/ServerChunkLoadingManager mainThreadExecutor Lnet/minecraft/util/thread/ThreadExecutor;
+accessible method net/minecraft/world/chunk/AbstractChunkHolder updateStatus (Lnet/minecraft/server/world/ServerChunkLoadingManager;)V
+accessible method net/minecraft/server/world/ChunkHolder updateFutures (Lnet/minecraft/server/world/ServerChunkLoadingManager;Ljava/util/concurrent/Executor;)V

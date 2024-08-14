@@ -58,7 +58,8 @@
         "sync_load.MobNavigationMixin",
         "sync_load.ServerWorldMixin",
         "sync_load.SleepTaskMixin",
-        "sync_load.StepAndDestroyBlockGoalMixin"
+        "sync_load.StepAndDestroyBlockGoalMixin",
+        "ticket_propagation.ChunkTicketManagerMixinForPropagation"
     ],
     "injectors": {
         "defaultRequire": 1
