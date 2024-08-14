@@ -15,6 +15,7 @@
         "chunk_ticking.ServerChunkManagerMixin",
         "collections.TypeFilterableListMixin",
         "density_cap_access.DensityCapMixin",
+        "distance.ChunkFilterMixin",
         "distance.ServerWorldMixin",
         "distance.WorldMixin",
         "entity.activation_range.EntityMixin",
