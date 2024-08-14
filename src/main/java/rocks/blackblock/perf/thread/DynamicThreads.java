@@ -87,7 +87,7 @@ public class DynamicThreads {
 	 * @since    0.1.0
 	 */
 	public static void attachToThread(Thread thread, String name) {
-		thread.setName(THREAD_NAME_PREFIX + name + "_" + thread.getId());
+		thread.setName(THREAD_NAME_PREFIX + name);
 	}
 
 	/**
