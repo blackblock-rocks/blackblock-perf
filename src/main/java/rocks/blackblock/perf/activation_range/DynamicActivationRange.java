@@ -244,7 +244,7 @@ public class DynamicActivationRange {
             }
 
             // Ignore AFK players when the server is busy
-            if ((info.isRandomlyDisabled() || info.isCritical()) && player.bb$isAfk()) {
+            if (player.bb$ignoreDueToSystemLoad()) {
                 continue;
             }
 

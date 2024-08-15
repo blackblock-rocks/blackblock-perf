@@ -136,11 +136,9 @@ public class DynamicSpawns {
             return false;
         }
 
-        var info = world.bb$getPerformanceInfo();
-
         for (ServerPlayerEntity player : getPlayersNear(world, new ChunkPos(pos))) {
 
-            if (player.bb$isAfk() && info.isRandomlyDisabled()) {
+            if (player.bb$ignoreDueToSystemLoad()) {
                 continue;
             }
 
