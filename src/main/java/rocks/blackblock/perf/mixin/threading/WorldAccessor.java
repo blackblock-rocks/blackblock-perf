@@ -1,4 +1,4 @@
-package rocks.blackblock.perf.mixin;
+package rocks.blackblock.perf.mixin.threading;
 
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;

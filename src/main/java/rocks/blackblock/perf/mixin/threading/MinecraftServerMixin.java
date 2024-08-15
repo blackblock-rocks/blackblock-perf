@@ -1,4 +1,4 @@
-package rocks.blackblock.perf.mixin;
+package rocks.blackblock.perf.mixin.threading;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;

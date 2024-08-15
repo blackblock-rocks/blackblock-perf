@@ -1,4 +1,4 @@
-package rocks.blackblock.perf.mixin;
+package rocks.blackblock.perf.mixin.threading;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.RedstoneWireBlock;

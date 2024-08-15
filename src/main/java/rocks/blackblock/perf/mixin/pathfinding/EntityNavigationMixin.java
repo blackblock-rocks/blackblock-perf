@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import rocks.blackblock.bib.util.BibLog;
 
 /**
  * Don't recalculate paths when the server is overloaded
@@ -69,6 +68,7 @@ public class EntityNavigationMixin {
             cancellable = true
     )
     public void bb$onRecalculatePath(CallbackInfo ci) {
+
         if (this.world.bb$getPerformanceInfo().isRandomlyDisabled()) {
             ci.cancel();
             return;

@@ -1,4 +1,4 @@
-package rocks.blackblock.perf.mixin;
+package rocks.blackblock.perf.mixin.threading;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.world.TeleportTarget;

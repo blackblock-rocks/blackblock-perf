@@ -3,12 +3,7 @@
     "package": "rocks.blackblock.perf.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
-        "EntityMixin",
-        "MinecraftServerMixin",
         "MobEntityMixin",
-        "RedStoneWireBlockMixin",
-        "ServerChunkManagerMixin",
-        "WorldAccessor",
         "WorldMixin",
         "accessors.IThreadedAnvilChunkStorageTicketManager",
         "chunk_ticking.ServerChunkLoadingManagerMixin",
@@ -78,6 +73,11 @@
         "sync_load.ServerWorldMixin",
         "sync_load.SleepTaskMixin",
         "sync_load.StepAndDestroyBlockGoalMixin",
+        "threading.EntityMixin",
+        "threading.MinecraftServerMixin",
+        "threading.RedStoneWireBlockMixin",
+        "threading.ServerChunkManagerMixin",
+        "threading.WorldAccessor",
         "ticket_propagation.ChunkTicketManagerMixinForPropagation"
     ],
     "injectors": {
