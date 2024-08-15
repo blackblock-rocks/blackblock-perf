@@ -2,16 +2,20 @@ package rocks.blackblock.perf.mixin.spawn;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.chunk.WorldChunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import rocks.blackblock.bib.util.BibChunk;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.spawn.CheckBelowCapPerWorld;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
@@ -99,5 +103,21 @@ public abstract class SpawnHelperMixin {
                 ci.cancel();
             }
         }
+    }
+
+    /**
+     * Prevent loading chunks when checking nether fortress structures
+     * @since 0.1.0
+     */
+    @Redirect(
+            method = "shouldUseNetherFortressSpawns",
+            require = 0,
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/world/ServerWorld;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;"
+            )
+    )
+    private static BlockState bb$preventAddingTickets(ServerWorld world, BlockPos pos) {
+        return BibChunk.getBlockStateIfLoaded(world, pos);
     }
 }
