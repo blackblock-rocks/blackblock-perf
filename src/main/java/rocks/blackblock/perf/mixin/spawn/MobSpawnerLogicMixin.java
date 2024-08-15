@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
-import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
 /**
  * Enforce the mobcap modifiers on Mob spawners

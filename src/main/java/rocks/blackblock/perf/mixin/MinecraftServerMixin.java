@@ -16,7 +16,6 @@ import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.debug.PerfDebug;
 import rocks.blackblock.perf.dynamic.DynamicSetting;
 import rocks.blackblock.perf.thread.DynamicThreads;
-import rocks.blackblock.perf.thread.HasPerformanceInfo;
 import rocks.blackblock.perf.util.CrashInfo;
 
 import java.util.Collections;

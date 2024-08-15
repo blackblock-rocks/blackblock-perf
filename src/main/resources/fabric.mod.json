@@ -32,12 +32,8 @@
 			"net/minecraft/class_1355": [
 				"rocks/blackblock/perf/interfaces/activation_range/InactiveTickable"
 			],
-			"net/minecraft/class_1936": [
-				"rocks/blackblock/perf/thread/HasPerformanceInfo"
-			],
 			"net/minecraft/class_1937": [
 				"rocks/blackblock/perf/thread/WithMutableThread",
-				"rocks/blackblock/perf/thread/HasPerformanceInfo",
 				"rocks/blackblock/perf/interfaces/distances/CustomDistances"
 			],
 			"net/minecraft/class_2818": [

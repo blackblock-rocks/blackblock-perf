@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.spawn.CheckBelowCapPerWorld;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
-import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
 /**
  * Add certain world-specific mobcap overrides
