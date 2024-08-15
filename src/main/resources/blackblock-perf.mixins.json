@@ -54,6 +54,7 @@
         "fast_biome_access.SpawnHelperMixin",
         "fast_biome_access.WorldViewMixin",
         "no_palette_locking.PalettedContainerMixin",
+        "pathfinding.EntityNavigationMixin",
         "player_watching.optimize_nearby_entity_tracking_lookups.EntityTrackerEntryMixin",
         "player_watching.optimize_nearby_entity_tracking_lookups.EntityTrackerMixin",
         "player_watching.optimize_nearby_entity_tracking_lookups.ServerChunkLoadingManagerMixinForEntityTracking",
