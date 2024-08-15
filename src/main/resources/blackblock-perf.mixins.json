@@ -14,6 +14,7 @@
         "chunk_ticking.ServerChunkLoadingManagerMixin",
         "chunk_ticking.ServerChunkManagerMixin",
         "collections.TypeFilterableListMixin",
+        "deduplicate_fluid_ticks.FluidBlockMixin",
         "density_cap_access.DensityCapMixin",
         "distance.ChunkFilterMixin",
         "distance.ServerChunkLoadingManagerMixin",
