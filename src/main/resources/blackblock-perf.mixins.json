@@ -51,6 +51,8 @@
         "fast_biome_access.SpawnHelperMixin",
         "fast_biome_access.WorldViewMixin",
         "no_palette_locking.PalettedContainerMixin",
+        "player_watching.optimize_player_lookups.MobEntityMixinForPlayerLookups",
+        "player_watching.optimize_player_lookups.SpawnDensityCapperMixinForPlayerLookups",
         "random_ticks.ServerChunkManagerMixinForIceAndSnow",
         "random_ticks.ServerWorldMixin",
         "random_ticks.WorldChunkMixinForLightning",

@@ -36,3 +36,6 @@ accessible method net/minecraft/server/world/ChunkHolder updateFutures (Lnet/min
 accessible method net/minecraft/server/world/ChunkTicketManager shouldTick (J)Z
 accessible class net/minecraft/server/world/ServerChunkLoadingManager$TicketManager
 accessible field net/minecraft/server/world/ServerChunkLoadingManager watchDistance I
+
+# Player watching optimizations
+accessible method net/minecraft/world/SpawnDensityCapper$DensityCap <init> ()V
