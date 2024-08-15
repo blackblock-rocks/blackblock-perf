@@ -4,12 +4,15 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.network.packet.s2c.play.ChunkLoadDistanceS2CPacket;
 import net.minecraft.server.network.ChunkFilter;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.PlayerChunkWatchingManager;
 import net.minecraft.server.world.ServerChunkLoadingManager;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPos;
 
 import java.util.Arrays;
@@ -47,6 +50,12 @@ public class AreaPlayerChunkWatchingManager {
     // Map to store the last known position of each player
     private final Object2LongOpenHashMap<ServerPlayerEntity> positions = new Object2LongOpenHashMap<>();
 
+    // The server chunk loading manager
+    private final ServerChunkLoadingManager server_chunk_loading_manager;
+
+    // The server world
+    private final ServerWorld server_world;
+
     // Listener for when a player starts watching a chunk
     private Listener addListener = NOOP;
 
@@ -69,13 +78,15 @@ public class AreaPlayerChunkWatchingManager {
      * Constructs a new AreaPlayerChunkWatchingManager with specified listeners and chunk loading manager.
      * @since 0.1.0
      *
-     * @param addListener    Listener for when a player starts watching a chunk
-     * @param removeListener Listener for when a player stops watching a chunk
-     * @param tacs           The ServerChunkLoadingManager instance
+     * @param addListener                      Listener for when a player starts watching a chunk
+     * @param removeListener                   Listener for when a player stops watching a chunk
+     * @param server_chunk_loading_manager     The ServerChunkLoadingManager instance
      */
-    public AreaPlayerChunkWatchingManager(Listener addListener, Listener removeListener, ServerChunkLoadingManager tacs) {
+    public AreaPlayerChunkWatchingManager(Listener addListener, Listener removeListener, ServerChunkLoadingManager server_chunk_loading_manager) {
         this.addListener = addListener == null ? NOOP : addListener;
         this.removeListener = removeListener == null ? NOOP : removeListener;
+        this.server_chunk_loading_manager = server_chunk_loading_manager;
+        this.server_world = server_chunk_loading_manager.world;
 
         this.playerAreaMap = new AreaMap<>(
                 (object, x, z) -> this.addListener.accept(object, x, z),
@@ -88,18 +99,32 @@ public class AreaPlayerChunkWatchingManager {
      * @since 0.1.0
      */
     public void tick() {
+
+        boolean new_fifth_second = this.server_world.getTime() % 100 == 0;
+
         for (Object2LongMap.Entry<ServerPlayerEntity> entry : this.positions.object2LongEntrySet()) {
             final ServerPlayerEntity player = entry.getKey();
 
-            if (player.bb$hasDirtyClientViewDistance()) {
-                player.bb$getClientViewDistance();
+            if (new_fifth_second) {
+                // Recalculate the personal view distance every 5 seconds
+                player.bb$recalculatePersonalViewDistance();
+            }
+
+            if (player.bb$hasDirtyPersonalViewDistance()) {
+                player.bb$getPersonalViewDistance();
+                int distance = this.getViewDistance(player);
 
                 final long pos = entry.getLongValue();
-                player.setChunkFilter(ChunkFilter.cylindrical(new ChunkPos(pos), this.getViewDistance(player)));
+                player.setChunkFilter(ChunkFilter.cylindrical(new ChunkPos(pos), distance));
                 this.movePlayer(pos, player);
+
+                // Tell the client the server-side view distance has changed.
+                // We subtract 1 because the client will still assume the range is cylyndrical,
+                // and then the fog won't be applied correctly
+                var update_packet = new ChunkLoadDistanceS2CPacket(distance - 1);
+                player.networkHandler.sendPacket(update_packet);
             }
         }
-
     }
 
     /**
@@ -108,6 +133,7 @@ public class AreaPlayerChunkWatchingManager {
      */
     public void setWatchDistance(int watchDistance) {
         this.watchDistance = Math.max(2, watchDistance);
+
         final ObjectIterator<Object2LongMap.Entry<ServerPlayerEntity>> iterator = positions.object2LongEntrySet().fastIterator();
         while (iterator.hasNext()) {
             final Object2LongMap.Entry<ServerPlayerEntity> entry = iterator.next();
@@ -171,7 +197,7 @@ public class AreaPlayerChunkWatchingManager {
         final int x = ChunkPos.getPackedX(pos);
         final int z = ChunkPos.getPackedZ(pos);
 
-        this.playerAreaMap.add(player, x, z, getViewDistance(player));
+        this.playerAreaMap.add(player, x, z, this.getViewDistance(player));
         this.generalPlayerAreaMap.add(player, x, z, GENERAL_PLAYER_AREA_MAP_DISTANCE);
 
         this.positions.put(player, BibPos.toLong(x, z));
@@ -200,7 +226,7 @@ public class AreaPlayerChunkWatchingManager {
         final int x = ChunkPos.getPackedX(new_long_pos);
         final int z = ChunkPos.getPackedZ(new_long_pos);
 
-        this.playerAreaMap.update(player, x, z, getViewDistance(player));
+        this.playerAreaMap.update(player, x, z, this.getViewDistance(player));
         this.generalPlayerAreaMap.update(player, x, z, GENERAL_PLAYER_AREA_MAP_DISTANCE);
 
         this.positions.put(player, BibPos.toLong(x, z));
@@ -212,7 +238,7 @@ public class AreaPlayerChunkWatchingManager {
      * @param player The player to calculate for
      */
     private int getViewDistance(ServerPlayerEntity player) {
-        return MathHelper.clamp(player.getViewDistance(), 2, this.watchDistance) + 1; // edge chunks are required for rendering
+        return MathHelper.clamp(player.bb$getPersonalViewDistance(), 2, this.watchDistance) + 1; // edge chunks are required for rendering
     }
 
     /**

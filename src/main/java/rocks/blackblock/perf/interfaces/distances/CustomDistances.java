@@ -7,11 +7,11 @@ package rocks.blackblock.perf.interfaces.distances;
  * @since    0.1.0
  */
 public interface CustomDistances {
-    default void bb$setViewDistance(int view_distance) {
+    default void bb$setMaxViewDistance(int view_distance) {
         // no-op
     }
 
-    default int bb$getViewDistance() {
+    default int bb$getMaxViewDistance() {
         return 9;
     }
 

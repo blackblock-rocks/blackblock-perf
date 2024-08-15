@@ -10,13 +10,13 @@ public class WorldMixin implements CustomDistances {
 
     @Unique
     @Override
-    public void bb$setViewDistance(int view_distance) {
+    public void bb$setMaxViewDistance(int view_distance) {
         // no-op
     }
 
     @Unique
     @Override
-    public int bb$getViewDistance() {
+    public int bb$getMaxViewDistance() {
         return 9;
     }
 

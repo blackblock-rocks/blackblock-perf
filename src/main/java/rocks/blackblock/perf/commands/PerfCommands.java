@@ -28,11 +28,7 @@ import rocks.blackblock.bib.util.BibServer;
 import rocks.blackblock.bib.util.BibText;
 import rocks.blackblock.perf.activation_range.ActivationRange;
 import rocks.blackblock.perf.activation_range.EntityCluster;
-import rocks.blackblock.perf.interfaces.activation_range.HasEntityClusters;
-import rocks.blackblock.perf.interfaces.chunk_ticking.TickableChunkSource;
-import rocks.blackblock.perf.interfaces.distances.CustomDistances;
 import rocks.blackblock.perf.thread.DynamicThreads;
-import rocks.blackblock.perf.thread.HasPerformanceInfo;
 
 import java.util.List;
 
@@ -44,7 +40,7 @@ public class PerfCommands {
         CommandLeaf perf = blackblock.getChild("perf");
         perf.onExecute(PerfCommands::onExecutePerfInfo);
         registerEntitiesCommands(perf);
-        registerFakePlayerCommand(perf);
+        registerPlayerCommands(perf);
         registerAfkCommands(perf);
     }
 
@@ -111,7 +107,7 @@ public class PerfCommands {
 
                 MutableText distance_text = Text.literal(world.bb$getSimulationDistance() + "").formatted(Formatting.AQUA)
                         .append(Text.literal(" / ").formatted(Formatting.GRAY))
-                        .append(Text.literal(world.bb$getViewDistance() + "").formatted(Formatting.AQUA));
+                        .append(Text.literal(world.bb$getMaxViewDistance() + "").formatted(Formatting.AQUA));
 
                 lore.addLine("State", info.getStateText());
 
@@ -321,32 +317,31 @@ public class PerfCommands {
         }
     }
 
-    private static void registerFakePlayerCommand(CommandLeaf perf) {
+    private static void registerPlayerCommands(CommandLeaf perf) {
 
-        CommandLeaf fake_player_leaf = perf.getChild("fake_player");
-        CommandLeaf spawn = fake_player_leaf.getChild("spawn");
-        CommandLeaf names_leaf = spawn.getChild("names");
-        names_leaf.setType(StringArgumentType.greedyString());
+        CommandLeaf players_leaf = perf.getChild("players");
+        CommandLeaf player_distances_leaf = players_leaf.getChild("distances");
 
-        names_leaf.onExecute(context -> {
+        player_distances_leaf.onExecute(context -> {
 
             var source = context.getSource();
 
-            String all_names = StringArgumentType.getString(context, "names");
+            BibText.Lore lore = BibText.createLore();
+            lore.add("Player view distances: World / Client / Personal");
 
-            for (String user_name : all_names.split(" ")) {
+            for (var player : source.getServer().getPlayerManager().getPlayerList()) {
 
-                SkullBlockEntity.fetchProfileByName(user_name).thenAccept(optional_profile -> {
+                MutableText distances = Text.literal(player.bb$getWorldViewDistance() + "")
+                        .formatted(Formatting.AQUA)
+                        .append(Text.literal(" / ").formatted(Formatting.GRAY))
+                        .append(Text.literal(player.bb$getClientSideViewDistance() + "").formatted(Formatting.AQUA))
+                        .append(Text.literal(" / ").formatted(Formatting.GRAY))
+                        .append(Text.literal(player.bb$getPersonalViewDistance() + "").formatted(Formatting.AQUA));
 
-                    if (optional_profile.isEmpty()) {
-                        return;
-                    }
-
-                    FakePlayer fake_player = FakePlayer.get(source.getWorld(), optional_profile.get());
-                    BibLog.log("Created fake player:", fake_player);
-
-                });
+                lore.addLine(player.getNameForScoreboard(), distances);
             }
+
+            source.sendFeedback(lore, false);
 
             return 1;
         });

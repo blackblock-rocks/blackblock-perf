@@ -4,7 +4,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.s2c.play.ChunkLoadDistanceS2CPacket;
 import net.minecraft.network.packet.s2c.play.SimulationDistanceS2CPacket;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
@@ -52,7 +51,7 @@ public abstract class ServerWorldMixin extends World implements CustomDistances,
     public abstract List<ServerPlayerEntity> getPlayers();
 
     @Unique
-    private int bb$view_distance = 6;
+    private int bb$max_view_distance = 6;
 
     @Unique
     private int bb$simulation_distance = 6;
@@ -69,26 +68,27 @@ public abstract class ServerWorldMixin extends World implements CustomDistances,
      */
     @Unique
     @Override
-    public void bb$setViewDistance(int view_distance) {
+    public void bb$setMaxViewDistance(int view_distance) {
 
-        if (this.bb$view_distance == view_distance) {
+        if (this.bb$max_view_distance == view_distance) {
             return;
         }
 
-        this.bb$view_distance = view_distance;
+        this.bb$max_view_distance = view_distance;
 
+        // Inform the chunk manager of the new view distance
+        // (Even though we override most of the vanilla code)
         this.chunkManager.applyViewDistance(view_distance);
 
-        var update_packet = new ChunkLoadDistanceS2CPacket(view_distance);
         for (var player :this.getPlayers()) {
-            player.networkHandler.sendPacket(update_packet);
+            player.bb$recalculatePersonalViewDistance();
         }
     }
 
     @Unique
     @Override
-    public int bb$getViewDistance() {
-        return this.bb$view_distance;
+    public int bb$getMaxViewDistance() {
+        return this.bb$max_view_distance;
     }
 
     /**
@@ -245,7 +245,6 @@ public abstract class ServerWorldMixin extends World implements CustomDistances,
         var update_packet = new SimulationDistanceS2CPacket(this.bb$simulation_distance);
         player.networkHandler.sendPacket(update_packet);
 
-        var update_packet2 = new ChunkLoadDistanceS2CPacket(this.bb$view_distance);
-        player.networkHandler.sendPacket(update_packet2);
+        player.bb$recalculatePersonalViewDistance();
     }
 }

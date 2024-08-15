@@ -25,12 +25,12 @@ public class DynamicDistances {
 
     // The dynamic view distance setting
     public static DynamicSetting VIEW_DISTANCE = new DynamicSetting(
-            "View Distance",
+            "Maximum View Distance",
             BibPerf.State.OVERLOADED,
             2,
             256,
             value -> value + " chunks",
-            DynamicDistances::updateViewDistance
+            DynamicDistances::updateMaxViewDistance
     );
 
     /**
@@ -46,7 +46,7 @@ public class DynamicDistances {
 
         VIEW_DISTANCE.setPreferredValue(16);
         VIEW_DISTANCE.setPerformanceValue(10);
-        VIEW_DISTANCE.setSmoothing(0.05f);
+        VIEW_DISTANCE.setSmoothing(0.1f);
         VIEW_DISTANCE.setRollingAverageWindow(20);
     }
 
@@ -59,10 +59,10 @@ public class DynamicDistances {
     }
 
     /**
-     * Update the view distance
+     * Update the maximum view distance
      * @since    0.1.0
      */
-    public static void updateViewDistance(World world, int value) {
-        world.bb$setViewDistance(value);
+    public static void updateMaxViewDistance(World world, int value) {
+        world.bb$setMaxViewDistance(value);
     }
 }
