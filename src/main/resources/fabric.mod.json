@@ -48,7 +48,11 @@
 				"rocks/blackblock/perf/interfaces/chunk_ticking/ResettableIceAndSnowTicks"
 			],
 			"net/minecraft/class_3222": [
-				"rocks/blackblock/perf/interfaces/distances/PlayerSpecificDistance"
+				"rocks/blackblock/perf/interfaces/distances/PlayerSpecificDistance",
+				"rocks/blackblock/perf/interfaces/player_watching/TrackingPositionInfo"
+			],
+			"net/minecraft/class_3231": [
+				"rocks/blackblock/perf/interfaces/player_watching/OptimizedEntityTrackerEntry"
 			],
 			"net/minecraft/class_3898": [
 				"rocks/blackblock/perf/interfaces/chunk_ticking/TickableChunkSource",

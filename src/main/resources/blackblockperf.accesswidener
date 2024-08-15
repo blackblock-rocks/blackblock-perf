@@ -42,3 +42,9 @@ accessible method net/minecraft/world/SpawnDensityCapper$DensityCap <init> ()V
 
 # Chunk broadcasting
 accessible class net/minecraft/server/world/ServerChunkManager$ChunkWithHolder
+
+# Entity tracking optimizations
+accessible field net/minecraft/server/network/EntityTrackerEntry lastPassengers Ljava/util/List;
+accessible field net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker entity Lnet/minecraft/entity/Entity;
+accessible field net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker trackedSection Lnet/minecraft/util/math/ChunkSectionPos;
+accessible method net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker getMaxTrackDistance ()I
