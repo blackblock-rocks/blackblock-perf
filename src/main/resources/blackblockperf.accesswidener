@@ -39,3 +39,6 @@ accessible field net/minecraft/server/world/ServerChunkLoadingManager watchDista
 
 # Player watching optimizations
 accessible method net/minecraft/world/SpawnDensityCapper$DensityCap <init> ()V
+
+# Chunk broadcasting
+accessible class net/minecraft/server/world/ServerChunkManager$ChunkWithHolder
