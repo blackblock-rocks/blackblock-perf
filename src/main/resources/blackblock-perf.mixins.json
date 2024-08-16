@@ -42,6 +42,7 @@
         "entity.activation_range.inactive_ticks.SpectralArrowEntityMixin",
         "entity.activation_range.inactive_ticks.TadpoleEntityMixin",
         "entity.activation_range.inactive_ticks.VillagerEntityMixin",
+        "entity.bat_halloween.BatEntityMixin",
         "entity.breeding.AnimalMateGoalMixin",
         "entity.breeding.BreedTaskMixin",
         "entity.breeding.VillagerBreedTaskMixin",
