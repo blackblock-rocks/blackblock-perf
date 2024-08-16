@@ -13,6 +13,7 @@
         "chunk_ticking.broadcast.ServerChunkManagerForBroadcasts",
         "collections.TypeFilterableListMixin",
         "compact_bit_storage.PalettedContainerMixin",
+        "compact_mojang_registries.SimpleRegistryMixin",
         "deduplicate_fluid_ticks.FluidBlockMixin",
         "density_cap_access.DensityCapMixin",
         "distance.ChunkFilterMixin",
