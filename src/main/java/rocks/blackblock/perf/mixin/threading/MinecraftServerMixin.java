@@ -19,6 +19,8 @@ import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.util.CrashInfo;
 
 import java.util.Collections;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
@@ -31,11 +33,11 @@ import java.util.function.BooleanSupplier;
 @Mixin(value = MinecraftServer.class, priority = 1010)
 public abstract class MinecraftServerMixin {
 
-    @Shadow public abstract Iterable<ServerWorld> getWorlds();
+    @Shadow
+    public abstract Iterable<ServerWorld> getWorlds();
 
-    @Shadow private int ticks;
-
-    @Shadow private PlayerManager playerManager;
+    @Shadow
+    private PlayerManager playerManager;
 
     /**
      * Returns an empty iterator to stop {@code MinecraftServer#tickWorlds}
@@ -82,9 +84,6 @@ public abstract class MinecraftServerMixin {
         // Get all the worlds to tick
         Iterable<ServerWorld> worlds = this.getWorlds();
 
-        // Is this a new second?
-        boolean is_new_second = this.ticks % 20 == 0;
-
         // All the worlds start at the same time
         long start = System.currentTimeMillis() - PerfDebug.MSPT_ADDITION;
 
@@ -93,10 +92,10 @@ public abstract class MinecraftServerMixin {
 
             DynamicThreads.attachToThread(Thread.currentThread(), world);
 
-            if (is_new_second) {
+            if (BibPerf.ON_FULL_SECOND) {
                 WorldTimeUpdateS2CPacket packet = new WorldTimeUpdateS2CPacket(
-                        world.getTimeOfDay(),
                         world.getTime(),
+                        world.getTimeOfDay(),
                         world.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)
                 );
                 this.playerManager.sendToDimension(packet, world.getRegistryKey());
@@ -117,7 +116,7 @@ public abstract class MinecraftServerMixin {
             BibPerf.Info info = world.bb$getPerformanceInfo();
             info.aggregateMspt(duration);
 
-            if (is_new_second) {
+            if (BibPerf.ON_FULL_SECOND) {
                 DynamicSetting.updateAll(info);
             }
         });
