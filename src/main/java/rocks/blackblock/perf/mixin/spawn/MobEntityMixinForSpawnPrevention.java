@@ -1,4 +1,4 @@
-package rocks.blackblock.perf.mixin;
+package rocks.blackblock.perf.mixin.spawn;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import rocks.blackblock.bib.util.BibPerf;
 
 @Mixin(MobEntity.class)
-public class MobEntityMixin {
+public class MobEntityMixinForSpawnPrevention {
 
     @Unique
     private static final ThreadLocal<Integer> counter = ThreadLocal.withInitial(() -> 0);

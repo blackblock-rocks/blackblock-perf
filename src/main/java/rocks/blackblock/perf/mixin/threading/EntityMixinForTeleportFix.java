@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import rocks.blackblock.perf.thread.DynamicThreads;
 
 @Mixin(Entity.class)
-public abstract class EntityMixin {
+public abstract class EntityMixinForTeleportFix {
 
     @Shadow public abstract @Nullable Entity teleportTo(TeleportTarget teleportTarget);
 

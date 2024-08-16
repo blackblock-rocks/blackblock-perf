@@ -7,7 +7,7 @@ import rocks.blackblock.bib.interfaces.HasPerformanceInfo;
 import rocks.blackblock.bib.util.BibPerf;
 
 @Mixin(World.class)
-public class WorldMixin implements HasPerformanceInfo {
+public class WorldMixinForAddingPerformanceInfo implements HasPerformanceInfo {
 
     @Unique
     private final BibPerf.Info bb$performance_info = new BibPerf.Info((World) (Object) this);
