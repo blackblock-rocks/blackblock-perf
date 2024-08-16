@@ -73,6 +73,7 @@
         "sign_ticking.HangingSignBlockMixin",
         "sign_ticking.SignBlockEntityMixin",
         "sign_ticking.WallHangingSignBlockMixin",
+        "spawn.BatEntityMixin",
         "spawn.InfestedStatusEffectMixin",
         "spawn.MobSpawnerLogicMixin",
         "spawn.NetherPortalBlockMixin",
