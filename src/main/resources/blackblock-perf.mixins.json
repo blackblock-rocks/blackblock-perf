@@ -79,6 +79,7 @@
         "sync_load.EntityGameEventHandlerMixin",
         "sync_load.FilledMapItemMixin",
         "sync_load.MobNavigationMixin",
+        "sync_load.NoChestChunkLoadingMixin",
         "sync_load.ServerWorldMixin",
         "sync_load.SleepTaskMixin",
         "sync_load.StepAndDestroyBlockGoalMixin",
