@@ -6,19 +6,26 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.SpawnHelper;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.world.gen.StructureAccessor;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import rocks.blackblock.bib.util.BibChunk;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.spawn.CheckBelowCapPerWorld;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
+
+import java.util.Objects;
 
 /**
  * Add certain world-specific mobcap overrides
@@ -106,6 +113,21 @@ public abstract class SpawnHelperMixin {
     }
 
     /**
+     * Don't check for nether fortresses when not in the nether
+     * @since 0.1.0
+     */
+    @Inject(
+        method = "shouldUseNetherFortressSpawns",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private static void bb$checkForNetherDimension(BlockPos pos, ServerWorld world, SpawnGroup spawnGroup, StructureAccessor structureAccessor, CallbackInfoReturnable<Boolean> cir) {
+        if (world.getRegistryKey() != ServerWorld.NETHER) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    /**
      * Prevent loading chunks when checking nether fortress structures
      * @since 0.1.0
      */
@@ -119,5 +141,17 @@ public abstract class SpawnHelperMixin {
     )
     private static BlockState bb$preventAddingTickets(ServerWorld world, BlockPos pos) {
         return BibChunk.getBlockStateIfLoaded(world, pos);
+    }
+
+    /**
+     * @author QPCrummer
+     * @reason There is no reason to check distance to the player twice
+     */
+    @Overwrite
+    private static boolean isAcceptableSpawnPosition(ServerWorld world, Chunk chunk, BlockPos.Mutable pos, double squaredDistance) {
+        if (squaredDistance <= 576.0) {
+            return false;
+        }
+        return Objects.equals(new ChunkPos(pos), chunk.getPos()) || world.shouldTick(pos);
     }
 }
