@@ -12,6 +12,7 @@
         "chunk_ticking.broadcast.ChunkHolderMixinForBroadcasts",
         "chunk_ticking.broadcast.ServerChunkManagerForBroadcasts",
         "collections.TypeFilterableListMixin",
+        "compact_bit_storage.PalettedContainerMixin",
         "deduplicate_fluid_ticks.FluidBlockMixin",
         "density_cap_access.DensityCapMixin",
         "distance.ChunkFilterMixin",
