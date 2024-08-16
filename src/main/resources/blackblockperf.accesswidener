@@ -48,3 +48,6 @@ accessible field net/minecraft/server/network/EntityTrackerEntry lastPassengers 
 accessible field net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker entity Lnet/minecraft/entity/Entity;
 accessible field net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker trackedSection Lnet/minecraft/util/math/ChunkSectionPos;
 accessible method net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker getMaxTrackDistance ()I
+
+# Cache
+accessible class net/minecraft/block/AbstractBlock$AbstractBlockState$ShapeCache

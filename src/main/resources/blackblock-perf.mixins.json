@@ -6,6 +6,7 @@
         "MobEntityMixin",
         "WorldMixin",
         "accessors.IThreadedAnvilChunkStorageTicketManager",
+        "cache.BlockStateShapeCacheMixin",
         "chunk_ticking.ServerChunkLoadingManagerMixin",
         "chunk_ticking.ServerChunkManagerMixin",
         "chunk_ticking.broadcast.ChunkHolderMixinForBroadcasts",
