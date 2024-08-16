@@ -1,4 +1,4 @@
-package rocks.blackblock.perf.mixin.entity.bat_halloween;
+package rocks.blackblock.perf.mixin.entity.halloween;
 
 import net.minecraft.entity.passive.BatEntity;
 import org.spongepowered.asm.mixin.Mixin;
