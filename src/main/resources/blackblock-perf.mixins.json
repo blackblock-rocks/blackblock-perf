@@ -84,6 +84,7 @@
         "spawn.SpawnHelperInfoMixin",
         "spawn.SpawnHelperMixin",
         "spawn.ZombieMixin",
+        "statistics.PlayerEntityMixinForStats",
         "sync_load.BeeEntityMixin",
         "sync_load.EntityGameEventHandlerMixin",
         "sync_load.FilledMapItemMixin",
