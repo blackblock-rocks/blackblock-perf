@@ -54,6 +54,7 @@
         "entity.halloween.ZombieEntityMixin",
         "entity.looking.LookControlMixin",
         "entity.move_zero_velocity.EntityMixin",
+        "entity.suffocation.LivingEntityMixinForSuffocation",
         "entity.villager_lobotomy.VillagerEntityMixin",
         "entity_tracking.EntityTrackerMixin",
         "entity_tracking.ServerChunkLoadingManagerMixin",
