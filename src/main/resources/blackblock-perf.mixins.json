@@ -7,6 +7,7 @@
         "WorldMixin",
         "accessors.IThreadedAnvilChunkStorageTicketManager",
         "cache.BlockStateShapeCacheMixin",
+        "cache.ChunkMixinForStructureReferences",
         "cache.IdentifierMixin",
         "cache.PropertyMixin",
         "chunk_ticking.ServerChunkLoadingManagerMixin",
