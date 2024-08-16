@@ -120,6 +120,9 @@ dependencies {
 
 	// Blackblock's bib mod, our main library
 	modImplementation ("rocks.blackblock:blackblock-bib:${constructVersion(project.blackblock_bib_version)}")
+
+	// Mixin Constraints
+	include(implementation("com.moulberry:mixinconstraints:1.0.1"))
 }
 
 processResources {
