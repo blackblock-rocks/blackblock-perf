@@ -91,6 +91,7 @@
         "statistics.PlayerEntityMixinForStats",
         "sync_load.BeeEntityMixin",
         "sync_load.EntityGameEventHandlerMixin",
+        "sync_load.FarmlandBlockMixin",
         "sync_load.FilledMapItemMixin",
         "sync_load.MobNavigationMixin",
         "sync_load.NoChestChunkLoadingMixin",
