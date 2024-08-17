@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.debug.PerfDebug;
 import rocks.blackblock.perf.dynamic.DynamicSetting;
@@ -22,6 +23,7 @@ import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -121,7 +123,35 @@ public abstract class MinecraftServerMixin {
             }
         });
 
+        BibLog.log("Going to wait for ThreadPool...");
+
+        // We're going to run tasks that are meant to be run on the
+        // individual world threads (minecraft:overworld etc) on the
+        // main server thread.
+        // This shouldn't be a problem: those world threads are actually
+        // waiting on us
+        while (DynamicThreads.THREAD_POOL.isActive()) {
+
+            int tasks = DynamicThreads.SERIAL_EXECUTOR.getTaskCount();
+
+            if (tasks > 0) {
+                BibLog.log("There are", tasks, "tasks!");
+            }
+
+            while (DynamicThreads.SERIAL_EXECUTOR.runTask()) {
+                // no-op
+            }
+
+            if (tasks > 0) {
+                BibLog.log("  - Done");
+            }
+
+            LockSupport.parkNanos("waiting for tasks", 100000L);
+        }
+
         DynamicThreads.THREAD_POOL.awaitCompletion();
+
+        BibLog.log("ThreadPool is done!");
 
         var crash = crash_while_threaded.get();
 

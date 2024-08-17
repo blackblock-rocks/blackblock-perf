@@ -1,6 +1,7 @@
 package rocks.blackblock.perf.thread;
 
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.thread.ThreadExecutor;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.bv.parameter.IntegerParameter;
@@ -35,6 +36,9 @@ public class DynamicThreads {
 
 	// The TweakParameter to use for setting the amount of threads
 	private static final IntegerParameter THREADS_PARAMETER = THREADING_TWEAKS.add(new IntegerParameter("max_threads"));
+
+	// A thread executor for certain tasks that should always run in series
+	public static final OffloadedThreadExecutor SERIAL_EXECUTOR = new OffloadedThreadExecutor("BlackblockPerf:SerialExecutor");
 
 	/**
 	 * Initialize the settings

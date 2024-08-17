@@ -9,10 +9,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import rocks.blackblock.bib.monitor.GlitchGuru;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.perf.distance.Delayed8WayDistancePropagator2D;
+import rocks.blackblock.perf.thread.DynamicThreads;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 /**
@@ -129,8 +133,24 @@ public abstract class ChunkTicketManagerMixinForPropagation {
     public int tickTickets(ChunkTicketManager.TicketDistanceLevelPropagator __, int distance, ServerChunkLoadingManager loading_manager) {
 
         if (!loading_manager.mainThreadExecutor.isOnThread()) {
-            throw new ConcurrentModificationException("Attempted to tick tickets asynchronously");
+            try {
+                BibLog.log("Ticking tickets asynchronously on thread", Thread.currentThread().getName(), "instead of", loading_manager.mainThreadExecutor.getName());
+                return DynamicThreads.SERIAL_EXECUTOR.submit(() -> {
+                    BibLog.log("Delayed ticking of tickets...");
+                    return this.bb$forceTickTickets(__, distance, loading_manager);
+                }).get();
+            } catch (InterruptedException | ExecutionException e) {
+                GlitchGuru.registerThrowable(e, "Ticket propagation");
+                throw new RuntimeException(e);
+            }
+            //throw new ConcurrentModificationException("Attempted to tick tickets asynchronously on thread " + Thread.currentThread().getName() + " instead of " + loading_manager.mainThreadExecutor.getName());
         }
+
+        return this.bb$forceTickTickets(__, distance, loading_manager);
+    }
+
+    @Unique
+    private int bb$forceTickTickets(ChunkTicketManager.TicketDistanceLevelPropagator __, int distance, ServerChunkLoadingManager loading_manager) {
 
         boolean has_updates = this.ticketLevelPropagator.propagateUpdates();
 

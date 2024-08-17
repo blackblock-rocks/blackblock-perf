@@ -57,3 +57,7 @@ accessible class net/minecraft/world/chunk/PalettedContainer$Data
 
 # Compact mojang registries
 mutable field net/minecraft/registry/SimpleRegistry keyToEntryInfo Ljava/util/Map;
+
+# Concurrent entity ticking
+accessible class net/minecraft/world/poi/PointOfInterestStorage$PointOfInterestDistanceTracker
+accessible field net/minecraft/world/poi/PointOfInterestStorage$PointOfInterestDistanceTracker distances Lit/unimi/dsi/fastutil/longs/Long2ByteMap;
