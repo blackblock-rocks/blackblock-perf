@@ -57,3 +57,8 @@ accessible class net/minecraft/world/chunk/PalettedContainer$Data
 
 # Compact mojang registries
 mutable field net/minecraft/registry/SimpleRegistry keyToEntryInfo Ljava/util/Map;
+
+# Reduce allocations
+accessible class net/minecraft/block/ComposterBlock$ComposterInventory
+accessible class net/minecraft/block/ComposterBlock$DummyInventory
+accessible class net/minecraft/block/ComposterBlock$FullComposterInventory
