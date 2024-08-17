@@ -112,6 +112,7 @@
         "threading.EntityMixinForTeleportFix",
         "threading.MinecraftServerMixin",
         "threading.RedStoneWireBlockMixin",
+        "threading.ServerChunkLoadingManagerMixinForAsyncSaving",
         "threading.ServerChunkManagerMixin",
         "threading.ServerWorldMixinForProfiler",
         "threading.WorldAccessor",
