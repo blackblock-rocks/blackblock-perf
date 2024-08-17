@@ -24,6 +24,9 @@ import rocks.blackblock.perf.interfaces.chunk_ticking.TickableChunkSource;
 @Mixin(ServerChunkLoadingManager.class)
 public class ServerChunkLoadingManagerMixin implements TickableChunkSource {
 
+    @Unique
+    private boolean bb$has_dirty_tickable_chunk_map = false;
+
     @Shadow
     @Final
     private Long2ObjectLinkedOpenHashMap<ChunkHolder> currentChunkHolders;
@@ -42,14 +45,28 @@ public class ServerChunkLoadingManagerMixin implements TickableChunkSource {
         }
 
         if (chunk_holder.getLevelType().isAfter(ChunkLevelType.BLOCK_TICKING)) {
-            this.bb$tickable_chunks.put(long_pos, chunk_holder);
+            ChunkHolder old_value = this.bb$tickable_chunks.put(long_pos, chunk_holder);
+            this.bb$has_dirty_tickable_chunk_map = old_value != chunk_holder;
         } else {
-            this.bb$tickable_chunks.remove(long_pos);
+            ChunkHolder old_value = this.bb$tickable_chunks.remove(long_pos);
+            this.bb$has_dirty_tickable_chunk_map = old_value != null;
         }
     }
 
     @Override
     public Long2ObjectLinkedOpenHashMap<ChunkHolder> bb$tickableChunkMap() {
         return this.bb$tickable_chunks;
+    }
+
+    @Override
+    @Unique
+    public boolean bb$hasDirtyTickableChunkMap() {
+        return this.bb$has_dirty_tickable_chunk_map;
+    }
+
+    @Override
+    @Unique
+    public void bb$setDirtyTickableChunkMap(boolean dirty) {
+        this.bb$has_dirty_tickable_chunk_map = dirty;
     }
 }

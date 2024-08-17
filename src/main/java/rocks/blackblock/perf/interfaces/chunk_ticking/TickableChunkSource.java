@@ -10,6 +10,15 @@ import net.minecraft.server.world.ChunkHolder;
  * @since    0.1.0
  */
 public interface TickableChunkSource {
+
+    default boolean bb$hasDirtyTickableChunkMap() {
+        return false;
+    }
+
+    default void bb$setDirtyTickableChunkMap(boolean dirty) {
+        // no-op
+    }
+
     default Long2ObjectLinkedOpenHashMap<ChunkHolder> bb$tickableChunkMap() {
         return null;
     }

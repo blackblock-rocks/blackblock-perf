@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import net.minecraft.server.world.*;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.SpawnDensityCapper;
@@ -21,12 +20,31 @@ import rocks.blackblock.perf.interfaces.chunk.BroadcastRequester;
 import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.thread.WithMutableThread;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
+/**
+ * Add the Threaded requirements.
+ *
+ * But also:
+ * Optimize/rewrite the `tickChunks` logic:
+ * - Only iterate over tickable chunks
+ * - Keep those chunks in a reusable array instead of a list
+ * - Only repopulate that array when a chunk actually changes tickability
+ * - Only broadcast chunks when they get a light update
+ * - We shuffle the chunks in-place and only once every third tick
+ *
+ * @author   Jelle De Loecker <jelle@elevenways.be>
+ * @since    0.1.0
+ */
 @Mixin(value = ServerChunkManager.class, priority = 1001)
 public abstract class ServerChunkManagerMixin extends ChunkManager implements WithMutableThread, BroadcastRequester {
+
+    @Unique
+    private ServerChunkManager.ChunkWithHolder[] bb$tickable_chunks = new ServerChunkManager.ChunkWithHolder[1024];
+
+    @Unique
+    private int bb$tickable_chunk_count = 0;
 
     @Unique
     private final ReferenceLinkedOpenHashSet<ChunkHolder> bb$requires_broadcast = new ReferenceLinkedOpenHashSet<>(128);
@@ -121,7 +139,7 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements Wi
 
         this.world.bb$resetIceAndSnowTick();
 
-        List<ServerChunkManager.ChunkWithHolder> loaded_chunks = bb$getTickableChunks();
+        this.bb$populateTickableChunks();
 
         if (this.world.getTickManager().shouldTick()) {
 
@@ -129,12 +147,10 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements Wi
             SpawnHelper.Info spawn_info = this.bb$setupSpawnInfo(ticked_chunk_count);
             this.spawnInfo = spawn_info;
 
-            bb$shuffleChunks(loaded_chunks);
-
             boolean is_time_to_spread_surface = this.world.getLevelProperties().getTime() % 400L == 0L;
 
-            for (ServerChunkManager.ChunkWithHolder chunk_with_holder : loaded_chunks) {
-                this.bb$tickChunk(chunk_with_holder, time_since_last_spawn, is_time_to_spread_surface, spawn_info);
+            for (int i = 0; i < this.bb$tickable_chunk_count; i++) {
+                this.bb$tickChunk(this.bb$tickable_chunks[i], time_since_last_spawn, is_time_to_spread_surface, spawn_info);
             }
 
             if (this.bb$do_mob_spawning) {
@@ -142,27 +158,73 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements Wi
             }
         }
 
-        bb$broadcastChunkUpdates(loaded_chunks);
+        bb$broadcastChunkUpdates();
     }
 
     /**
-     * Get all the loaded chunks that can be ticked
+     * Populate the tickable chunks array
      * @since 0.1.0
      */
     @Unique
-    private List<ServerChunkManager.ChunkWithHolder> bb$getTickableChunks() {
+    private void bb$populateTickableChunks() {
+
+        if (!this.chunkLoadingManager.bb$hasDirtyTickableChunkMap()) {
+            if (BibPerf.ON_THIRD_TICK) {
+                this.bb$shuffleTickableChunks();
+            }
+            return;
+        }
 
         var tickable_chunk_map = this.chunkLoadingManager.bb$tickableChunkMap();
+        int size = tickable_chunk_map.size();
 
-        List<ServerChunkManager.ChunkWithHolder> chunks = new ArrayList<>(tickable_chunk_map.size());
+        int old_size = this.bb$tickable_chunks.length;
+        boolean increased = old_size < size;
+        boolean decreased = old_size > size;
+
+        // Resize the array if necessary
+        if (increased) {
+            this.bb$tickable_chunks = new ServerChunkManager.ChunkWithHolder[size + 128];
+        }
+
+        this.bb$tickable_chunk_count = 0;
 
         for (ChunkHolder holder : tickable_chunk_map.values()) {
             WorldChunk chunk = holder.getWorldChunk();
-            if (chunk != null) {
-                chunks.add(new ServerChunkManager.ChunkWithHolder(chunk, holder));
+
+            if (chunk == null) {
+                continue;
             }
+
+            this.bb$tickable_chunks[this.bb$tickable_chunk_count] = new ServerChunkManager.ChunkWithHolder(chunk, holder);
+            this.bb$tickable_chunk_count++;
         }
-        return chunks;
+
+        this.chunkLoadingManager.bb$setDirtyTickableChunkMap(false);
+
+        if (BibPerf.ON_THIRD_TICK) {
+            this.bb$shuffleTickableChunks();
+        }
+
+        // If the array got smaller, we need to clear the extra elements
+        if (decreased) {
+            Arrays.fill(this.bb$tickable_chunks, this.bb$tickable_chunk_count, old_size, null);
+        }
+    }
+
+    /**
+     * Shuffle the array in-place
+     * @since 0.1.0
+     */
+    @Unique
+    private void bb$shuffleTickableChunks() {
+        for (int i = this.bb$tickable_chunk_count - 1; i > 0; i--) {
+            int index = this.world.random.nextInt(i + 1);
+            // Simple swap
+            ServerChunkManager.ChunkWithHolder temp = this.bb$tickable_chunks[index];
+            this.bb$tickable_chunks[index] = this.bb$tickable_chunks[i];
+            this.bb$tickable_chunks[i] = temp;
+        }
     }
 
     /**
@@ -172,17 +234,6 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements Wi
     @Unique
     private SpawnHelper.Info bb$setupSpawnInfo(int ticked_chunk_count) {
         return SpawnHelper.setupSpawn(ticked_chunk_count, this.world.iterateEntities(), this::ifChunkLoaded, new SpawnDensityCapper(this.chunkLoadingManager));
-    }
-
-    /**
-     * Shuffle the chunks every third tick
-     * @since 0.1.0
-     */
-    @Unique
-    private void bb$shuffleChunks(List<ServerChunkManager.ChunkWithHolder> chunks) {
-        if (BibPerf.ON_THIRD_TICK) {
-            Util.shuffle(chunks, this.world.random);
-        }
     }
 
     /**
@@ -212,14 +263,15 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements Wi
      * @since 0.1.0
      */
     @Unique
-    private void bb$broadcastChunkUpdates(List<ServerChunkManager.ChunkWithHolder> chunks) {
-        chunks.forEach(chunk -> chunk.holder().flushUpdates(chunk.chunk()));
+    private void bb$broadcastChunkUpdates() {
+
         for (ChunkHolder holder : this.bb$requires_broadcast) {
             WorldChunk chunk = holder.getWorldChunk();
             if (chunk != null) {
                 holder.flushUpdates(chunk);
             }
         }
+
         this.bb$requires_broadcast.clear();
     }
 
