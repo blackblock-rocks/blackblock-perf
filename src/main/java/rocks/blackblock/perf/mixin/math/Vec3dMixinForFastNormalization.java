@@ -2,7 +2,6 @@ package rocks.blackblock.perf.mixin.math;
 
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.*;
-import rocks.blackblock.bib.util.BibMath;
 
 @Mixin(Vec3d.class)
 public class Vec3dMixinForFastNormalization {
@@ -23,8 +22,8 @@ public class Vec3dMixinForFastNormalization {
     public double z;
 
     /**
-     * @author QPCrummer
-     * @reason Cache normalized Vec
+     * @author Jelle De Loecker <jelle@elevenways.be>
+     * @reason Use early exit
      */
     @Overwrite
     public Vec3d normalize() {
@@ -35,7 +34,7 @@ public class Vec3dMixinForFastNormalization {
             return Vec3d.ZERO;
         }
 
-        double inv_length = 1.0 / BibMath.fastSqrt(squared_length);
+        double inv_length = 1.0 / Math.sqrt(squared_length);
         return new Vec3d(x * inv_length, y * inv_length, z * inv_length);
     }
 }
