@@ -62,3 +62,8 @@ mutable field net/minecraft/registry/SimpleRegistry keyToEntryInfo Ljava/util/Ma
 accessible class net/minecraft/block/ComposterBlock$ComposterInventory
 accessible class net/minecraft/block/ComposterBlock$DummyInventory
 accessible class net/minecraft/block/ComposterBlock$FullComposterInventory
+
+# ServerChunkManager optimizations
+accessible method net/minecraft/server/world/ServerChunkManager$ChunkWithHolder <init> (Lnet/minecraft/world/chunk/WorldChunk;Lnet/minecraft/server/world/ChunkHolder;)V
+accessible method net/minecraft/server/world/ServerChunkLoadingManager entryIterator ()Ljava/lang/Iterable;
+accessible method net/minecraft/server/world/ServerChunkLoadingManager shouldTick (Lnet/minecraft/util/math/ChunkPos;)Z
