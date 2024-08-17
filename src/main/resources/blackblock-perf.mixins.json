@@ -103,7 +103,10 @@
         "threading.ServerChunkManagerMixin",
         "threading.ServerWorldMixinForProfiler",
         "threading.WorldAccessor",
-        "ticket_propagation.ChunkTicketManagerMixinForPropagation"
+        "ticket_propagation.ChunkTicketManagerMixinForPropagation",
+        "unstream.nearest_item.NearestItemSensorMixin",
+        "unstream.nearest_item.NearestPlayersSensorMixin",
+        "unstream.player_movement.ServerPlayNetworkHandlerMixinForOnAirCheck"
     ],
     "injectors": {
         "defaultRequire": 1
