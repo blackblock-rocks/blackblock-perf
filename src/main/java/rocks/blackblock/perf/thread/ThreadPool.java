@@ -1,11 +1,15 @@
 package rocks.blackblock.perf.thread;
 
+import rocks.blackblock.bib.monitor.GlitchGuru;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.perf.BlackblockPerf;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Spliterator;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -57,6 +61,14 @@ public class ThreadPool {
     }
 
     /**
+     * Is this thread pool currently performing work?
+     * @since 0.1.0
+     */
+    public boolean isActive() {
+        return this.active_count.getCount() > 0;
+    }
+
+    /**
      * Get the executor
      * @since 0.1.0
      */
@@ -74,10 +86,39 @@ public class ThreadPool {
         this.executor.execute(() -> {
             try {
                 action.run();
+            } catch (Throwable t) {
+                GlitchGuru.registerThrowable(t, "ThreadPool");
+                throw t;
             } finally {
                 this.active_count.decrement();
             }
         });
+    }
+
+    /**
+     * Execute a task in parallel for each element in the iterator
+     * @since 0.1.0
+     */
+    public <V> void concurrentForEach(int threshold, ConcurrentHashMap<?, V> map, Consumer<V> action) {
+
+        final var spliterator = map.values().spliterator();
+
+        // If the spliterator is small enough, just iterate over it
+        if (spliterator.estimateSize() < threshold) {
+            spliterator.forEachRemaining(action);
+            return;
+        }
+
+        final var split = split(spliterator, this.getThreadCount());
+        final var queue = new ArrayBlockingQueue<Throwable>(this.getThreadCount());
+
+        for (final var spliter : split) {
+            this.execute(() -> {
+                spliter.forEachRemaining(action);
+            });
+        }
+
+        this.awaitCompletion();
     }
 
     public <T> void execute(Iterator<T> iterator, Consumer<T> action) {
@@ -211,5 +252,24 @@ public class ThreadPool {
                 this.wait();
             }
         }
+    }
+
+    private static <V> Collection<Spliterator<V>> split(Spliterator<V> spliterator, int amount) {
+        final var list = new ArrayList<Spliterator<V>>(amount);
+        list.add(spliterator);
+
+
+        for (int i = 0, a = 1, c = 1; c < amount; i++, c++) {
+            if (i == a) {
+                a += a;
+                i = 0;
+            }
+
+            final var sub = list.get(i).trySplit();
+            if (sub == null) break;
+            list.add(sub);
+        }
+
+        return list;
     }
 }
