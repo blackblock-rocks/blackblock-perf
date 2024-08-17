@@ -1,23 +1,21 @@
 package rocks.blackblock.perf.mixin.collections;
 
+import com.moulberry.mixinconstraints.annotations.IfModAbsent;
 import net.minecraft.util.collection.SortedArraySet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.AbstractSet;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.Predicate;
 
 /**
- * Optimizes the removeIf method of SortedArraySet:
- * - Performing a single pass over the array
- * - Minimizing memory writes
- * - Avoiding creation of iterator objects
- * - Efficiently shifting remaining elements
+ * Use Lithium's optimized removeIf implementation for SortedArraySet.
  *
- * @author   PaperMC team
+ * @author   Lithium
  * @since    0.1.0
  */
+@IfModAbsent("lithium")
 @Mixin(SortedArraySet.class)
 public abstract class SortedArraySetMixin<T> extends AbstractSet<T> {
 
@@ -27,38 +25,38 @@ public abstract class SortedArraySetMixin<T> extends AbstractSet<T> {
     @Shadow
     T[] elements;
 
-    // Paper start - optimise removeIf
+    /**
+     * Add an optimized implementation of {@link Collection#removeIf(Predicate)} which doesn't attempt to shift
+     * the values in the array multiple times with each removal. This also eliminates a number of object allocations
+     * and works on the direct backing array, speeding things up a fair chunk.
+     */
     @Override
     public boolean removeIf(Predicate<? super T> filter) {
-        // prev. impl used an iterator, which could be n^2 and creates garbage
-        int i = 0, len = this.size;
-        T[] backingArray = this.elements;
+        T[] arr = this.elements;
 
-        for (;;) {
-            if (i >= len) {
-                return false;
-            }
-            if (!filter.test(backingArray[i])) {
-                ++i;
+        int writeLim = this.size;
+        int writeIdx = 0;
+
+        for (int readIdx = 0; readIdx < writeLim; readIdx++) {
+            T obj = arr[readIdx];
+
+            // If the filter does not pass the object, simply skip over it. The write pointer will
+            // not be advanced and the next element to pass will instead take this one's place.
+            if (filter.test(obj)) {
                 continue;
             }
-            break;
-        }
 
-        // we only want to write back to backingArray if we really need to
-
-        int lastIndex = i; // this is where new elements are shifted to
-
-        for (; i < len; ++i) {
-            T curr = backingArray[i];
-            if (!filter.test(curr)) { // if test throws we're screwed
-                backingArray[lastIndex++] = curr;
+            // If the read and write pointers are the same, then no removals have occurred so far. This
+            // allows us to skip copying unchanged values back into the array.
+            if (writeIdx != readIdx) {
+                arr[writeIdx] = obj;
             }
+
+            writeIdx++;
         }
 
-        // cleanup end
-        Arrays.fill(backingArray, lastIndex, len, null);
-        this.size = lastIndex;
-        return true;
+        this.size = writeIdx;
+
+        return writeLim != writeIdx;
     }
 }
