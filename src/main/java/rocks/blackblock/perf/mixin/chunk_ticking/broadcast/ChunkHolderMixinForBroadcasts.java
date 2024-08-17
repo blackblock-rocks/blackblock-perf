@@ -21,9 +21,6 @@ public class ChunkHolderMixinForBroadcasts {
     @Final
     private HeightLimitView world;
 
-    @Unique
-    private final ChunkHolder bb$self = (ChunkHolder) (Object) this;
-
     @Inject(
         method = "markForBlockUpdate",
         at = @At(
@@ -50,7 +47,7 @@ public class ChunkHolderMixinForBroadcasts {
     @Unique
     private void bb$requiresBroadcast() {
         if (this.world instanceof ServerWorld server_world) {
-            server_world.getChunkManager().bb$requiresBroadcast(this.bb$self);
+            server_world.getChunkManager().bb$requiresBroadcast((ChunkHolder) (Object) this);
         }
     }
 }
