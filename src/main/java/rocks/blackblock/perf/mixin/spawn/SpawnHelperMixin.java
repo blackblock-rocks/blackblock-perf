@@ -58,10 +58,6 @@ public abstract class SpawnHelperMixin {
     )
     private static boolean bb$shouldCancelSpawn(boolean original, ServerWorld world, @Local(ordinal = 0) SpawnGroup category) {
 
-        if (category.getCapacity() <= 0) {
-            return true;
-        }
-
         int interval = category.bb$getSpawnInterval(world);
         BibPerf.Info info = world.bb$getPerformanceInfo();
 
