@@ -153,18 +153,42 @@ public class DynamicThreads {
 	}
 
 	/**
+	 * Are we on the correct world thread?
+	 *
+	 * @since    0.1.0
+	 */
+	public static boolean onWorldThread(World world) {
+		return Thread.currentThread() == world.bb$getMainThread();
+	}
+
+	/**
 	 * The current thread is trying to change something belonging to another thread.
 	 * We'll just hope that other thread belongs to us, and put something in its queue.
 	 *
 	 * @since    0.1.0
 	 */
-	public static <R> R queueOnOtherWorldThread(Thread thread, Supplier<R> task) {
+	public static <R> R ensureWorldThread(World world, Supplier<R> task) {
+
+		Thread wanted_thread = world.bb$getMainThread();
+
+		if (Thread.currentThread() == wanted_thread) {
+			return task.get();
+		}
+
+		return waitOnOtherWorldThread(wanted_thread, task);
+	}
+
+	/**
+	 * The current thread is trying to change something belonging to another thread.
+	 * We'll just hope that other thread belongs to us, and put something in its queue.
+	 *
+	 * @since    0.1.0
+	 */
+	public static <R> R waitOnOtherWorldThread(Thread thread, Supplier<R> task) {
 
 		var queue = THREAD_QUEUES.computeIfAbsent(thread, t -> new ConcurrentLinkedQueue<>());
 
 		Pledge<R> pledge = new Pledge<>();
-
-		BibLog.log("Queueing task from", Thread.currentThread(), "for", thread, task);
 
 		queue.add(() -> pledge.resolve(task.get()));
 
@@ -173,6 +197,24 @@ public class DynamicThreads {
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Send a task to the given world thread,
+	 * but don't wait for it to finish
+	 *
+	 * @since    0.1.0
+	 */
+	public static void sendToWorldThread(World world, Runnable task) {
+
+		if (onWorldThread(world)) {
+			task.run();
+			return;
+		}
+
+		Thread wanted_thread = world.bb$getMainThread();
+		var queue = THREAD_QUEUES.computeIfAbsent(wanted_thread, t -> new ConcurrentLinkedQueue<>());
+		queue.add(task);
 	}
 
 	/**
@@ -198,9 +240,7 @@ public class DynamicThreads {
 
 		while (!queue.isEmpty()) {
 			Runnable runnable = queue.poll();
-			BibLog.log("Running task on thread", thread, runnable);
 			runnable.run();
-			BibLog.log(" -- Done!");
 		}
 	}
 }

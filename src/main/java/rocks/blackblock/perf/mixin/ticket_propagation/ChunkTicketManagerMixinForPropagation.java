@@ -15,8 +15,6 @@ import rocks.blackblock.perf.distance.Delayed8WayDistancePropagator2D;
 import rocks.blackblock.perf.thread.DynamicThreads;
 
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 /**
@@ -133,9 +131,15 @@ public abstract class ChunkTicketManagerMixinForPropagation {
     public int tickTickets(ChunkTicketManager.TicketDistanceLevelPropagator __, int distance, ServerChunkLoadingManager loading_manager) {
 
         if (!loading_manager.mainThreadExecutor.isOnThread()) {
-            return DynamicThreads.queueOnOtherWorldThread(loading_manager.world.bb$getMainThread(), () -> {
+            var async_result = DynamicThreads.waitOnOtherWorldThread(loading_manager.world.bb$getMainThread(), () -> {
                 return this.bb$forceTickTickets(__, distance, loading_manager);
             });
+
+            if (async_result == null) {
+                BibLog.attention(" -- Async result is null!");
+                GlitchGuru.registerThrowable(new RuntimeException("Async result of ticking tickets was null!"));
+                return 0;
+            }
         }
 
         return this.bb$forceTickTickets(__, distance, loading_manager);

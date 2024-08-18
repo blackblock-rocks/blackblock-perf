@@ -2,6 +2,7 @@ package rocks.blackblock.perf.mixin.threading;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.world.TeleportTarget;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,16 +24,14 @@ public abstract class EntityMixinForTeleportFix {
     @Inject(method = "teleportTo", at = @At("HEAD"), cancellable = true)
     public void moveToWorld(TeleportTarget teleportTarget, CallbackInfoReturnable<Entity> cir) {
 
-        if (!DynamicThreads.THREADS_ENABLED) {
+        World target = teleportTarget.world();
+
+        if (!DynamicThreads.THREADS_ENABLED || DynamicThreads.onWorldThread(target)) {
             return;
         }
 
-        if (DynamicThreads.ownsThread(Thread.currentThread())) {
-            teleportTarget.world().getServer().execute(() -> {
-                this.teleportTo(teleportTarget);
-            });
+        DynamicThreads.sendToWorldThread(target, () -> this.teleportTo(teleportTarget));
 
-            cir.setReturnValue(null);
-        }
+        cir.setReturnValue(null);
     }
 }
