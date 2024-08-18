@@ -115,6 +115,7 @@
         "threading.ServerChunkLoadingManagerMixinForAsyncSaving",
         "threading.ServerChunkManagerMixin",
         "threading.ServerWorldMixinForProfiler",
+        "threading.ServerWorldMixinForQueueDraining",
         "threading.WorldAccessor",
         "ticket_propagation.ChunkTicketManagerMixinForPropagation",
         "unstream.nearest_item.NearestItemSensorMixin",
