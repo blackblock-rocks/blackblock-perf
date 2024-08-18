@@ -68,3 +68,7 @@ accessible method net/minecraft/server/world/ServerChunkManager$ChunkWithHolder 
 accessible method net/minecraft/server/world/ServerChunkLoadingManager entryIterator ()Ljava/lang/Iterable;
 accessible method net/minecraft/server/world/ServerChunkLoadingManager shouldTick (Lnet/minecraft/util/math/ChunkPos;)Z
 accessible method net/minecraft/util/thread/ThreadExecutor getThread ()Ljava/lang/Thread;
+
+# Concurrent entity ticking
+accessible class net/minecraft/world/poi/PointOfInterestStorage$PointOfInterestDistanceTracker
+accessible field net/minecraft/world/poi/PointOfInterestStorage$PointOfInterestDistanceTracker distances Lit/unimi/dsi/fastutil/longs/Long2ByteMap;
