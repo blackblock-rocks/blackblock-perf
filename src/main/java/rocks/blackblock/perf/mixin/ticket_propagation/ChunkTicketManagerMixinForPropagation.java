@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.perf.distance.Delayed8WayDistancePropagator2D;
 
 import java.util.ArrayList;
@@ -129,7 +130,8 @@ public abstract class ChunkTicketManagerMixinForPropagation {
     public int tickTickets(ChunkTicketManager.TicketDistanceLevelPropagator __, int distance, ServerChunkLoadingManager loading_manager) {
 
         if (!loading_manager.mainThreadExecutor.isOnThread()) {
-            throw new ConcurrentModificationException("Attempted to tick tickets asynchronously");
+            BibLog.log("Loading manager:", loading_manager);
+            throw new ConcurrentModificationException("Attempted to tick tickets asynchronously on thread " + Thread.currentThread().getName() + " but expected to be on " + loading_manager.mainThreadExecutor.getThread().getName());
         }
 
         boolean has_updates = this.ticketLevelPropagator.propagateUpdates();
