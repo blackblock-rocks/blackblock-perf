@@ -6,9 +6,14 @@ import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.bv.parameter.IntegerParameter;
 import rocks.blackblock.bib.bv.parameter.MapParameter;
 import rocks.blackblock.bib.bv.value.BvInteger;
+import rocks.blackblock.bib.runnable.Pledge;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.BlackblockPerf;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Supplier;
 
 /**
  * The main Dynamic Threads class
@@ -35,6 +40,13 @@ public class DynamicThreads {
 
 	// The TweakParameter to use for setting the amount of threads
 	private static final IntegerParameter THREADS_PARAMETER = THREADING_TWEAKS.add(new IntegerParameter("max_threads"));
+
+	// Thread busy state
+	private static final ConcurrentHashMap<Thread, Boolean> THREAD_IS_BUSY = new ConcurrentHashMap<>();
+
+	// Thread queues
+	private static final ConcurrentHashMap<Thread, ConcurrentLinkedQueue<Runnable>> THREAD_QUEUES = new ConcurrentHashMap<>();
+
 
 	/**
 	 * Initialize the settings
@@ -88,6 +100,24 @@ public class DynamicThreads {
 	 */
 	public static void attachToThread(Thread thread, String name) {
 		thread.setName(THREAD_NAME_PREFIX + name);
+		THREAD_IS_BUSY.put(thread, true);
+	}
+
+	/**
+	 * Detach a thread
+	 * @since    0.1.0
+	 */
+	public static void detachThread(Thread thread) {
+		thread.setName(THREAD_NAME_PREFIX);
+		THREAD_IS_BUSY.put(thread, false);
+	}
+
+	/**
+	 * Is the given thread one of ours & busy?
+	 * @since    0.1.0
+	 */
+	public static boolean ownsAndIsBusy(Thread thread) {
+		return thread.getName().startsWith(THREAD_NAME_PREFIX) && THREAD_IS_BUSY.get(thread);
 	}
 
 	/**
@@ -114,11 +144,63 @@ public class DynamicThreads {
 		BibLog.attention("Dimensional thread count:", DynamicThreads.THREADS_COUNT);
 
 		if (DynamicThreads.THREADS_ENABLED) {
-			DynamicThreads.THREAD_POOL = new ThreadPool(DynamicThreads.THREADS_COUNT);
+			DynamicThreads.THREAD_POOL = new ThreadPool("dimensions", DynamicThreads.THREADS_COUNT);
 
 			BibPerf.setWorldInfoGetter(World::bb$getPerformanceInfo);
 		} else {
 			BibPerf.setWorldInfoGetter(null);
+		}
+	}
+
+	/**
+	 * The current thread is trying to change something belonging to another thread.
+	 * We'll just hope that other thread belongs to us, and put something in its queue.
+	 *
+	 * @since    0.1.0
+	 */
+	public static <R> R queueOnOtherWorldThread(Thread thread, Supplier<R> task) {
+
+		var queue = THREAD_QUEUES.computeIfAbsent(thread, t -> new ConcurrentLinkedQueue<>());
+
+		Pledge<R> pledge = new Pledge<>();
+
+		BibLog.log("Queueing task from", Thread.currentThread(), "for", thread, task);
+
+		queue.add(() -> pledge.resolve(task.get()));
+
+		try {
+			return pledge.get();
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Drain the queue of the current thread
+	 *
+	 * @since    0.1.0
+	 */
+	public static void drainOurLocalQueue() {
+		drainThreadQueue(Thread.currentThread());
+	}
+
+	/**
+	 * Drain the queue of the current thread
+	 *
+	 * @since    0.1.0
+	 */
+	public static void drainThreadQueue(Thread thread) {
+		var queue = THREAD_QUEUES.get(thread);
+
+		if (queue == null) {
+			return;
+		}
+
+		while (!queue.isEmpty()) {
+			Runnable runnable = queue.poll();
+			BibLog.log("Running task on thread", thread, runnable);
+			runnable.run();
+			BibLog.log(" -- Done!");
 		}
 	}
 }

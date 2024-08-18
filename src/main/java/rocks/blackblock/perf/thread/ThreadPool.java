@@ -22,19 +22,29 @@ public class ThreadPool {
     // The number of threads currently active
     private final IntLatch active_count = new IntLatch();
 
+    // All the current threads
+    private final List<Thread> threads = new ArrayList<>();
+
+    // The name of this thread pool
+    private final String name;
+
+    // The threads and their busy state
+    private final ConcurrentHashMap<Thread, Boolean> threads_busy = new ConcurrentHashMap<>();
+
     /**
      * Creates a thread pool with the number of available processors
      * @since 0.1.0
      */
-    public ThreadPool() {
-        this(Runtime.getRuntime().availableProcessors());
+    public ThreadPool(String name) {
+        this(name, Runtime.getRuntime().availableProcessors());
     }
 
     /**
      * Creates a thread pool with the given number of threads
      * @since 0.1.0
      */
-    public ThreadPool(int thread_count) {
+    public ThreadPool(String name, int thread_count) {
+        this.name = name;
         this.thread_count = thread_count;
         this.restart();
     }
@@ -79,12 +89,15 @@ public class ThreadPool {
         this.active_count.increment();
 
         this.executor.execute(() -> {
+            this.threads_busy.put(Thread.currentThread(), true);
+
             try {
                 action.run();
             } catch (Throwable t) {
                 GlitchGuru.registerThrowable(t, "ThreadPool");
                 throw t;
             } finally {
+                this.threads_busy.put(Thread.currentThread(), false);
                 this.active_count.decrement();
             }
         });
@@ -258,12 +271,28 @@ public class ThreadPool {
 
     public void restart() {
         if(this.executor == null || this.executor.isShutdown()) {
+            this.threads.clear();
+            this.threads_busy.clear();
+
             this.executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(this.thread_count, r -> {
                 Thread t  = new Thread(r);
                 t.setDaemon(true);
-                t.setName(BlackblockPerf.MOD_ID + "_server_" + "unassigned");
+                t.setName(BlackblockPerf.MOD_ID + "_" + this.name + "_" + "unassigned");
+                this.threads.add(t);
                 return t;
             });
+        }
+    }
+
+    /**
+     * Drain the queues of all the inactive threads
+     * @since 0.1.0
+     */
+    public void drainInactiveThreadQueues() {
+        for (var thread : this.threads) {
+            if (!this.threads_busy.getOrDefault(thread, true)) {
+                DynamicThreads.drainThreadQueue(thread);
+            }
         }
     }
 

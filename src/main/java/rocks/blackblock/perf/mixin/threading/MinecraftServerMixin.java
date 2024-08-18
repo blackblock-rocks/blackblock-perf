@@ -19,9 +19,8 @@ import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.util.CrashInfo;
 
 import java.util.Collections;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -111,6 +110,8 @@ public abstract class MinecraftServerMixin {
 
             }, world, world.getChunkManager());
 
+            DynamicThreads.detachThread(Thread.currentThread());
+
             long duration = System.currentTimeMillis() - start;
 
             BibPerf.Info info = world.bb$getPerformanceInfo();
@@ -120,6 +121,17 @@ public abstract class MinecraftServerMixin {
                 DynamicSetting.updateAll(info);
             }
         });
+
+        // We're going to run tasks that are meant to be run on the
+        // individual world threads (minecraft:overworld etc) on the
+        // main server thread.
+        // This shouldn't be a problem: those world threads are actually
+        // waiting on us
+        while (DynamicThreads.THREAD_POOL.isActive()) {
+            DynamicThreads.drainOurLocalQueue();
+            DynamicThreads.THREAD_POOL.drainInactiveThreadQueues();
+            LockSupport.parkNanos("waiting for tasks", 100000L);
+        }
 
         DynamicThreads.THREAD_POOL.awaitCompletion();
 
