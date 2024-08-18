@@ -7,6 +7,11 @@ package rocks.blackblock.perf.thread;
  * @since    0.1.0
  */
 public interface WithMutableThread {
-    Thread bb$getMainThread();
-    void bb$setMainThread(Thread thread);
+    default Thread bb$getMainThread() {
+        return null;
+    }
+
+    default void bb$setMainThread(Thread thread) {
+        // no-op
+    }
 }
