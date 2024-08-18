@@ -9,11 +9,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import rocks.blackblock.bib.monitor.GlitchGuru;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.perf.distance.Delayed8WayDistancePropagator2D;
+import rocks.blackblock.perf.thread.DynamicThreads;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 /**
@@ -130,9 +133,20 @@ public abstract class ChunkTicketManagerMixinForPropagation {
     public int tickTickets(ChunkTicketManager.TicketDistanceLevelPropagator __, int distance, ServerChunkLoadingManager loading_manager) {
 
         if (!loading_manager.mainThreadExecutor.isOnThread()) {
-            BibLog.log("Loading manager:", loading_manager);
-            throw new ConcurrentModificationException("Attempted to tick tickets asynchronously on thread " + Thread.currentThread().getName() + " but expected to be on " + loading_manager.mainThreadExecutor.getThread().getName());
+            BibLog.log("Loading manager:", loading_manager, "on thread", Thread.currentThread(), "when it should be on", loading_manager.world.bb$getMainThread());
+            return DynamicThreads.queueOnOtherWorldThread(loading_manager.world.bb$getMainThread(), () -> {
+                BibLog.log("Forcing ticket ticks");
+                var result = this.bb$forceTickTickets(__, distance, loading_manager);
+                BibLog.log("  -- Result is", result);
+                return result;
+            });
         }
+
+        return this.bb$forceTickTickets(__, distance, loading_manager);
+    }
+
+    @Unique
+    private int bb$forceTickTickets(ChunkTicketManager.TicketDistanceLevelPropagator __, int distance, ServerChunkLoadingManager loading_manager) {
 
         boolean has_updates = this.ticketLevelPropagator.propagateUpdates();
 
