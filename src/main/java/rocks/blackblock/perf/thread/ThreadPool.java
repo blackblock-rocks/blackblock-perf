@@ -1,15 +1,10 @@
 package rocks.blackblock.perf.thread;
 
 import rocks.blackblock.bib.monitor.GlitchGuru;
-import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.perf.BlackblockPerf;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -99,26 +94,84 @@ public class ThreadPool {
      * Execute a task in parallel for each element in the iterator
      * @since 0.1.0
      */
-    public <V> void concurrentForEach(int threshold, ConcurrentHashMap<?, V> map, Consumer<V> action) {
+    public <V> void concurrentForEach(int threshold, Collection<V> collection, Consumer<V> action) {
 
-        final var spliterator = map.values().spliterator();
-
-        // If the spliterator is small enough, just iterate over it
-        if (spliterator.estimateSize() < threshold) {
-            spliterator.forEachRemaining(action);
+        // If the collection size doesn't exceed the threshold, just iterate over it
+        if (collection.size() < threshold) {
+            collection.forEach(action);
             return;
         }
 
+        final var spliterator = collection.spliterator();
         final var split = split(spliterator, this.getThreadCount());
-        final var queue = new ArrayBlockingQueue<Throwable>(this.getThreadCount());
 
-        for (final var spliter : split) {
+        for (final var splitter : split) {
             this.execute(() -> {
-                spliter.forEachRemaining(action);
+                splitter.forEachRemaining(action);
             });
         }
 
         this.awaitCompletion();
+    }
+
+    /**
+     * Execute a task in parallel for each element in the iterator
+     * @since 0.1.0
+     */
+    public <V> void concurrentForEach(int threshold, Map<?, V> map, Consumer<V> action) {
+
+        final var values = map.values();
+
+        // If the map size doesn't exceed the threshold, just iterate over it
+        if (values.size() < threshold) {
+            values.forEach(action);
+            return;
+        }
+
+        final var spliterator = values.spliterator();
+        final var split = split(spliterator, this.getThreadCount());
+
+        for (final var splitter : split) {
+            this.execute(() -> {
+                splitter.forEachRemaining(action);
+            });
+        }
+
+        this.awaitCompletion();
+    }
+
+    /**
+     * Execute a task in parallel for each element in the iterator.
+     * Afterwards, each successful task will have a cleanup action executed on the main thread.
+     *
+     * @since 0.1.0
+     */
+    public <V, R> void concurrentForEachWithLocalCleanup(List<V> values, Function<V, R> task, Consumer<R> cleanup) {
+
+        if (values.isEmpty()) {
+            return;
+        }
+
+        final var spliterator = values.spliterator();
+        final var split = split(spliterator, this.getThreadCount());
+        final var queue = Collections.synchronizedList(new ArrayList<R>(values.size()));
+
+        for (final var splitter : split) {
+            this.execute(() -> {
+                splitter.forEachRemaining(value -> {
+                    var result = task.apply(value);
+                    if (result != null) {
+                        queue.add(result);
+                    }
+                });
+            });
+        }
+
+        this.awaitCompletion();
+
+        for (var result : queue) {
+            cleanup.accept(result);
+        }
     }
 
     public <T> void execute(Iterator<T> iterator, Consumer<T> action) {
