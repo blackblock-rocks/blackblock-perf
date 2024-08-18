@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.interfaces.chunk.BroadcastRequester;
 import rocks.blackblock.perf.thread.DynamicThreads;
@@ -38,7 +39,13 @@ import java.util.function.Consumer;
  * @since    0.1.0
  */
 @Mixin(value = ServerChunkManager.class, priority = 1001)
-public abstract class ServerChunkManagerMixin extends ChunkManager implements WithMutableThread, BroadcastRequester {
+public abstract class ServerChunkManagerMixin
+    extends
+        ChunkManager
+    implements
+        WithMutableThread,
+        BibLog.Argable,
+        BroadcastRequester {
 
     @Unique
     private ServerChunkManager.ChunkWithHolder[] bb$tickable_chunks = new ServerChunkManager.ChunkWithHolder[1024];
@@ -283,5 +290,14 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements Wi
     @Unique
     public void bb$requiresBroadcast(ChunkHolder holder) {
         this.bb$requires_broadcast.add(holder);
+    }
+
+    @Unique
+    @Override
+    public BibLog.Arg toBBLogArg() {
+        var result = BibLog.createArg(this);
+        result.add("chunk_loading_manager", this.chunkLoadingManager);
+        result.add("main_thread", this.serverThread);
+        return result;
     }
 }

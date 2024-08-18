@@ -6,6 +6,9 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import net.minecraft.server.world.ChunkHolder;
 import net.minecraft.server.world.ServerChunkLoadingManager;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.thread.ThreadExecutor;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -16,14 +19,31 @@ import rocks.blackblock.bib.util.BibPerf;
 
 import java.util.function.BooleanSupplier;
 
+/**
+ * Throttle saving active chunks.
+ *
+ * @author   Jelle De Loecker <jelle@elevenways.be>
+ * @since    0.1.0
+ */
 @Mixin(ServerChunkLoadingManager.class)
-public abstract class ServerChunkLoadingManagerMixinForAsyncSaving {
+public abstract class ServerChunkLoadingManagerMixinForAsyncSaving implements BibLog.Argable {
 
     @Unique
     private boolean bb$save_is_backlogged = false;
 
     @Shadow
     protected abstract boolean save(ChunkHolder chunkHolder);
+
+    @Shadow
+    @Final
+    public ThreadExecutor<Runnable> mainThreadExecutor;
+
+    @Shadow
+    public abstract int getLoadedChunkCount();
+
+    @Shadow
+    @Final
+    public ServerWorld world;
 
     @Redirect(
             method = "unloadChunks",
@@ -68,5 +88,18 @@ public abstract class ServerChunkLoadingManagerMixinForAsyncSaving {
         }
 
         return ObjectIterators.emptyIterator();
+    }
+
+    @Unique
+    @Override
+    public BibLog.Arg toBBLogArg() {
+
+        var result = BibLog.createArg(this);
+
+        result.add("world", this.world);
+        result.add("main_thread", this.mainThreadExecutor.getThread());
+        result.add("loaded_chunk_count", this.getLoadedChunkCount());
+
+        return result;
     }
 }
