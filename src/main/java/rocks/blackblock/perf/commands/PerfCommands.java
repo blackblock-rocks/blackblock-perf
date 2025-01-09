@@ -9,11 +9,15 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerChunkLoadingManager;
+import net.minecraft.server.world.ServerChunkManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.command.CommandCreator;
@@ -28,9 +32,11 @@ import rocks.blackblock.bib.util.BibServer;
 import rocks.blackblock.bib.util.BibText;
 import rocks.blackblock.perf.activation_range.ActivationRange;
 import rocks.blackblock.perf.activation_range.EntityCluster;
+import rocks.blackblock.perf.distance.AreaPlayerChunkWatchingManager;
 import rocks.blackblock.perf.thread.DynamicThreads;
 
 import java.util.List;
+import java.util.Set;
 
 @ApiStatus.Internal
 public class PerfCommands {
@@ -42,6 +48,70 @@ public class PerfCommands {
         registerEntitiesCommands(perf);
         registerPlayerCommands(perf);
         registerAfkCommands(perf);
+        registerChunkWatchCommands(perf);
+    }
+
+    private static void registerChunkWatchCommands(CommandLeaf perf) {
+        CommandLeaf chunkWatch = perf.getChild("chunk_watch");
+        chunkWatch.onExecute(PerfCommands::onExecuteChunkWatchInfo);
+    }
+
+    private static int onExecuteChunkWatchInfo(CommandContext<ServerCommandSource> context) {
+        var source = context.getSource();
+        var player = source.getPlayer();
+        ServerWorld source_world = player.getServerWorld();
+
+        ServerChunkManager chunkManager = source_world.getChunkManager();
+        ServerChunkLoadingManager loadingManager = chunkManager.chunkLoadingManager;
+        AreaPlayerChunkWatchingManager areaManager = loadingManager.bb$getAreaPlayerChunkWatchingManager();
+
+        BibText.Lore lore = BibText.createLore();
+        lore.addLine(Text.literal("Area Player Chunk Watching Manager:"));
+        lore.addLine(Text.literal(" - Watch distance: " + areaManager.getWatchDistance()));
+
+        Set<ServerPlayerEntity> players = areaManager.getAllPlayers();
+        lore.addLine(Text.literal(" - Watching " + players.size() + " players:"));
+
+        for (ServerPlayerEntity wplayer : players) {
+            lore.addLine(Text.literal(" -- " + wplayer.getNameForScoreboard()));
+
+            int view_distance = areaManager.getViewDistance(wplayer);
+            lore.addLine(Text.literal(" --- View distance: " + view_distance));
+
+            ChunkPos chunkPos = areaManager.getPlayerChunkPosition(wplayer);
+
+            if (chunkPos == null) {
+                lore.addLine(" --- Chunk pos: null!");
+            } else {
+                lore.addLine(" --- Chunk pos: " + chunkPos.x + ", " + chunkPos.z);
+            }
+
+            var list = loadingManager.getPlayersWatchingChunk(chunkPos, true);
+
+            if (list.contains(wplayer)) {
+                lore.addLine(" --- On edge: true");
+            } else {
+                lore.addLine(" --- On edge: false");
+            }
+
+            //lore.addLine(" --- Is on track edge: " + loadingManager)
+
+            var wpos = wplayer.getWatchedSection().toChunkPos();
+            lore.addLine(" --- Watched section: " + wpos.x + ", " + wpos.z);
+
+            lore.addLine(" ");
+        }
+
+        lore.addLine(" ");
+
+        ChunkPos currentChunkPos = player.getChunkPos();
+        lore.addLine("You are in chunk " + currentChunkPos.x + ", " + currentChunkPos.z);
+        var playersWatching = loadingManager.getPlayersWatchingChunk(currentChunkPos);
+        lore.addLine("  -- There are " + playersWatching.size() + " players watching this chunk");
+
+        source.sendFeedback(lore, false);
+
+        return 1;
     }
 
     /**

@@ -7,8 +7,11 @@ import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import rocks.blackblock.bib.util.BibPos;
 import rocks.blackblock.perf.util.SimpleObjectPool;
 
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Efficient 2D spatial data structure for managing objects (typically players) in a grid-based area.
@@ -55,6 +58,16 @@ public class AreaMap<T> {
         this.addListener = addListener;
         this.removeListener = removeListener;
         this.sortListenerCalls = sortListenerCalls;
+    }
+
+    public Set<T> getAllObjects() {
+
+        Set<T> result = new HashSet<>();
+
+        for (RawObjectLinkedOpenIdentityHashSet<T> set : map.values()) {
+            result.addAll(set);
+        }
+        return result;
     }
 
     public Set<T> getObjectsInRange(long coordinateKey) {
@@ -241,6 +254,8 @@ public class AreaMap<T> {
     }
 
     private static int chebyshevDistance(int x0, int z0, int x1, int z1) {
+        // Yes: normally chebyshev uses max (not min), but this is how VMP did it,
+        // so we'll keep it like that for now
         return Math.min(Math.abs(x0 - x1), Math.abs(z0 - z1));
     }
 

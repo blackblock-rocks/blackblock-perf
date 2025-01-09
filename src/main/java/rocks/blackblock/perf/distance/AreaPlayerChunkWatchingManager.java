@@ -10,8 +10,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.PlayerChunkWatchingManager;
 import net.minecraft.server.world.ServerChunkLoadingManager;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import rocks.blackblock.bib.util.BibPos;
 
 import java.util.Arrays;
@@ -162,6 +164,14 @@ public class AreaPlayerChunkWatchingManager {
     }
 
     /**
+     * Get all the players being watched by this manager.
+     * @since 0.1.0
+     */
+    public Set<ServerPlayerEntity> getAllPlayers() {
+        return this.playerAreaMap.getAllObjects();
+    }
+
+    /**
      * Gets the set of players watching a specific chunk.
      * @since 0.1.0
      */
@@ -229,6 +239,25 @@ public class AreaPlayerChunkWatchingManager {
         this.generalPlayerAreaMap.update(player, x, z, GENERAL_PLAYER_AREA_MAP_DISTANCE);
 
         this.positions.put(player, BibPos.toLong(x, z));
+    }
+
+    /**
+     * Get the player's last updated position
+     * (Used for debugging)
+     *
+     * @param player The player to calculate for
+     */
+    @Nullable
+    public ChunkPos getPlayerChunkPosition(ServerPlayerEntity player) {
+
+        if (!this.positions.containsKey(player)) {
+            return null;
+        }
+
+        long pos = this.positions.getLong(player);
+        ChunkPos chunkPos = new ChunkPos(pos);
+
+        return chunkPos;
     }
 
     /**
