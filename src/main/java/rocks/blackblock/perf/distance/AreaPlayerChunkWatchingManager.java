@@ -10,7 +10,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.PlayerChunkWatchingManager;
 import net.minecraft.server.world.ServerChunkLoadingManager;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -120,9 +119,7 @@ public class AreaPlayerChunkWatchingManager {
                 this.movePlayer(pos, player);
 
                 // Tell the client the server-side view distance has changed.
-                // We subtract 1 because the client will still assume the range is cylyndrical,
-                // and then the fog won't be applied correctly
-                var update_packet = new ChunkLoadDistanceS2CPacket(distance - 1);
+                var update_packet = new ChunkLoadDistanceS2CPacket(distance);
                 player.networkHandler.sendPacket(update_packet);
             }
         }
@@ -265,8 +262,8 @@ public class AreaPlayerChunkWatchingManager {
      *
      * @param player The player to calculate for
      */
-    private int getViewDistance(ServerPlayerEntity player) {
-        return MathHelper.clamp(player.bb$getPersonalViewDistance(), 2, this.watchDistance) + 1; // edge chunks are required for rendering
+    public int getViewDistance(ServerPlayerEntity player) {
+        return MathHelper.clamp(player.bb$getPersonalViewDistance(), 2, this.watchDistance);
     }
 
     /**
