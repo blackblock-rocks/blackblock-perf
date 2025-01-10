@@ -6,6 +6,7 @@ import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.bv.parameter.IntegerParameter;
 import rocks.blackblock.bib.bv.parameter.MapParameter;
 import rocks.blackblock.bib.bv.value.BvInteger;
+import rocks.blackblock.bib.monitor.GlitchGuru;
 import rocks.blackblock.bib.runnable.Pledge;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
@@ -215,6 +216,27 @@ public class DynamicThreads {
 		Thread wanted_thread = world.bb$getMainThread();
 		var queue = THREAD_QUEUES.computeIfAbsent(wanted_thread, t -> new ConcurrentLinkedQueue<>());
 		queue.add(task);
+	}
+
+	/**
+	 * Send a task to the given world thread,
+	 * but don't wait for it to finish
+	 *
+	 * @since    0.1.0
+	 */
+	public static void sendToWorldThreadWithDebug(World world, Runnable task, String before, String after) {
+
+		Runnable wrapper = () -> {
+			BibLog.log("[DEBUG] Starting thread task: " + before);
+			try {
+				task.run();
+			} catch (Throwable e) {
+				GlitchGuru.registerThrowable(e, "sendToWorldThreadWithDebug");
+			}
+			BibLog.log("[DEBUG] Finished thread task: " + after);
+		};
+
+		sendToWorldThread(world, wrapper);
 	}
 
 	/**

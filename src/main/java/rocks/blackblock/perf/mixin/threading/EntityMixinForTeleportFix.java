@@ -30,7 +30,16 @@ public abstract class EntityMixinForTeleportFix {
             return;
         }
 
-        DynamicThreads.sendToWorldThread(target, () -> this.teleportTo(teleportTarget));
+        // Executing the teleport on the target thread immediately only works
+        // if the entity does not have any passengers.
+        // So we don't do it like this anymore, and instead defer it to the main thread
+        //DynamicThreads.sendToWorldThread(target, () -> this.teleportTo(teleportTarget));
+
+        // Execute the teleportation on the main thread
+        // (Once all the dimensional threads have finished)
+        target.getServer().execute(() -> {
+            this.teleportTo(teleportTarget);
+        });
 
         cir.setReturnValue(null);
     }
