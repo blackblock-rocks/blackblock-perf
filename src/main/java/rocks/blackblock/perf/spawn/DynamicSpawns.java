@@ -99,6 +99,70 @@ public class DynamicSpawns {
     }
 
     /**
+     * Can the given entity spawn in the given world, form farming reasons?
+     * @since    0.1.0
+     */
+    public static boolean canSpawnForFarm(Entity entity, World world, BlockPos pos) {
+        return !(world instanceof ServerWorld server_world) || canSpawnForFarm(entity, server_world, pos);
+    }
+
+    /**
+     * Can the given entity spawn in the given world?
+     * @since    0.1.0
+     */
+    public static boolean canSpawnForFarm(Entity entity, ServerWorld world, BlockPos pos) {
+        var spawn_group = entity.getType().getSpawnGroup();
+        return canSpawnForFarm(spawn_group, world, pos);
+    }
+
+    /**
+     * Can the given spawn group spawn in the given world, for farming reasons?
+     * (Like infested effects)
+     * @since    0.1.0
+     */
+    public static boolean canSpawnForFarm(SpawnGroup spawn_group, ServerWorld world, BlockPos pos) {
+
+        SpawnHelper.Info state = world.getChunkManager().getSpawnInfo();
+
+        if (state == null || spawn_group == SpawnGroup.MISC) {
+            return true;
+        }
+
+        int spawnable_chunk_count = state.getSpawningChunkCount();
+
+        // Just double the capacity limit
+        final int capacity = spawn_group.bb$getCapacity(world) * 2;
+        int world_capacity = (capacity * spawnable_chunk_count / MAGIC_NUMBER) * 2;
+
+        final int world_count = state.getGroupToCount().getInt(spawn_group);
+
+        if (world_count >= world_capacity) {
+            return false;
+        }
+
+        for (ServerPlayerEntity player : getPlayersNear(world, new ChunkPos(pos))) {
+
+            if (player.bb$ignoreDueToSystemLoad()) {
+                continue;
+            }
+
+            SpawnDensityCapper.DensityCap mob_count = state.densityCapper.playersToDensityCap.get(player);
+
+            if (mob_count == null) {
+                return true;
+            }
+
+            int density = mob_count.spawnGroupsToDensity.getOrDefault(spawn_group, 0);
+
+            if (density < capacity) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Can the given entity spawn in the given world?
      * @since    0.1.0
      */

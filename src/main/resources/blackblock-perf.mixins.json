@@ -19,6 +19,7 @@
         "deduplicate_fluid_ticks.FluidBlockMixin",
         "density_cap_access.DensityCapMixin",
         "distance.ChunkFilterMixin",
+        "distance.PlayerManagerMixinForCorrectJoinPacketDistance",
         "distance.ServerChunkLoadingManagerMixin",
         "distance.ServerChunkLoadingManagerMixinForCancellingSend",
         "distance.ServerPlayerEntityMixinForDistance",

@@ -2,11 +2,13 @@ package rocks.blackblock.perf.mixin.spawn;
 
 import net.minecraft.entity.effect.InfestedStatusEffect;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.mob.SilverfishEntity;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
 
 /**
@@ -19,17 +21,17 @@ import rocks.blackblock.perf.spawn.DynamicSpawns;
 public class InfestedStatusEffectMixin {
 
     @Inject(
-            method = "onEntityDamage",
-            cancellable = true,
+            method = "spawnSilverfish",
             at = @At(
                     value = "INVOKE",
-                    target = "Ljava/util/function/ToIntFunction;applyAsInt(Ljava/lang/Object;)I",
-                    ordinal = 0
-            )
+                    target = "Lnet/minecraft/entity/LivingEntity;getRandom()Lnet/minecraft/util/math/random/Random;"
+            ),
+            locals = LocalCapture.CAPTURE_FAILHARD,
+            cancellable = true
     )
-    private void bb$enforceMobcap(LivingEntity entity, int amplifier, DamageSource source, float damage, CallbackInfo ci) {
-        boolean can_spawn = DynamicSpawns.canSpawn(
-                entity,
+    private void bb$enforceMobcap(World world, LivingEntity entity, double x, double y, double z, CallbackInfo ci, SilverfishEntity silverfishEntity) {
+        boolean can_spawn = DynamicSpawns.canSpawnForFarm(
+                silverfishEntity,
                 entity.getWorld(),
                 entity.getBlockPos()
         );
