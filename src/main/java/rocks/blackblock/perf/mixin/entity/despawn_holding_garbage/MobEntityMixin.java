@@ -4,6 +4,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import org.objectweb.asm.Opcodes;
@@ -14,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rocks.blackblock.bib.util.BibEntity;
 import rocks.blackblock.bib.util.BibItem;
+import rocks.blackblock.bib.util.BibLog;
 
 /**
  * Don't make mobs persistent just because they picked up garbage
@@ -66,7 +68,7 @@ public abstract class MobEntityMixin extends LivingEntity {
             }
 
             // If it's not only holding garbage, don't prevent persistency
-            if (!BibEntity.isOnlyHoldingGarbage((LivingEntity) (Object) this)) {
+            if (!BibEntity.isOnlyHoldingGarbage(this)) {
                 return;
             }
         }
@@ -75,8 +77,9 @@ public abstract class MobEntityMixin extends LivingEntity {
     }
 
     /**
-     * If a mob is loaded, and it's persistent,
-     * make sure it's holding something that's not garbage.
+     * If a mob is being loaded, and it's persistent,
+     * disable the persistency if it's just because it's holding garbage.
+     *
      * @since    0.1.0
      */
     @Inject(
@@ -97,9 +100,8 @@ public abstract class MobEntityMixin extends LivingEntity {
             return;
         }
 
-        // Turn off persistency if it's holding only garbage
-        if (BibEntity.isOnlyHoldingGarbage((LivingEntity) (Object) this)) {
-            this.persistent = false;
-        }
+        // We no longer do this, because some monsters
+        // can be holding garbage (or nothing) and be persistent.
+        // Like a breeze
     }
 }
