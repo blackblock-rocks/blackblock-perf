@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.debug.PerfDebug;
 import rocks.blackblock.perf.dynamic.DynamicSetting;
@@ -19,6 +20,8 @@ import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.util.CrashInfo;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
@@ -86,6 +89,9 @@ public abstract class MinecraftServerMixin {
         // All the worlds start at the same time
         long start = System.currentTimeMillis() - PerfDebug.MSPT_ADDITION;
 
+        // All the worlds that have finished by now
+        Set<ServerWorld> finished_worlds = new HashSet<>();
+
         // Tick all the worlds on the thread pool
         DynamicThreads.THREAD_POOL.execute(worlds, world -> {
 
@@ -120,7 +126,11 @@ public abstract class MinecraftServerMixin {
             if (BibPerf.ON_FULL_SECOND) {
                 DynamicSetting.updateAll(info);
             }
+
+            finished_worlds.add(world);
         });
+
+        int wait_count = 0;
 
         // We're going to run tasks that are meant to be run on the
         // individual world threads (minecraft:overworld etc) on the
@@ -130,7 +140,22 @@ public abstract class MinecraftServerMixin {
         while (DynamicThreads.THREAD_POOL.isActive()) {
             DynamicThreads.drainOurLocalQueue();
             DynamicThreads.THREAD_POOL.drainInactiveThreadQueues();
-            LockSupport.parkNanos("waiting for tasks", 100000L);
+
+            // Wait 1ms before checking again
+            LockSupport.parkNanos("waiting for tasks", 1_000_000L);
+            wait_count++;
+
+            // If we're waiting for more than 1 second on a single tick,
+            // something is probably wrong
+            if (wait_count % 1000 == 0) {
+                BibLog.log("Ticking worlds is taking a very long time, still waiting for:");
+
+                for (ServerWorld world : worlds) {
+                    if (!finished_worlds.contains(world)) {
+                        BibLog.log(" - " + world.getRegistryKey().getValue());
+                    }
+                }
+            }
         }
 
         DynamicThreads.THREAD_POOL.awaitCompletion();
