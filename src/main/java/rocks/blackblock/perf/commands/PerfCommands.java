@@ -1,5 +1,6 @@
 package rocks.blackblock.perf.commands;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.SpawnGroup;
@@ -15,6 +16,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import rocks.blackblock.bib.command.CommandCreator;
@@ -46,6 +48,49 @@ public class PerfCommands {
         registerPlayerCommands(perf);
         registerAfkCommands(perf);
         registerChunkWatchCommands(perf);
+        registerFlySpeedCommand(perf);
+    }
+
+    private static void registerFlySpeedCommand(CommandLeaf perf) {
+        CommandLeaf flySpeed = perf.getChild("fly-speed");
+
+        flySpeed.onExecute(context -> {
+
+            var source = context.getSource();
+            var player = source.getPlayer();
+
+            float j = player.getAbilities().getFlySpeed();
+
+            BibText.Lore lore = BibText.createLore();
+            lore.addLine(Text.literal("Fly speed: ").formatted(Formatting.GRAY)
+                    .append(Text.literal((j * 100) + "").formatted(Formatting.GOLD)));
+
+            source.sendFeedback(lore, false);
+
+            return 1;
+        });
+
+        CommandLeaf value = flySpeed.getChild("new-value");
+        value.setType(IntegerArgumentType.integer());
+
+        value.onExecute(context -> {
+
+            float new_value = (float) IntegerArgumentType.getInteger(context, "new-value") / 100;
+            var source = context.getSource();
+            var player = source.getPlayer();
+
+            float l = MathHelper.clamp(new_value, 0.0F, 1F);
+            player.getAbilities().setFlySpeed(l);
+            player.sendAbilitiesUpdate();
+
+            BibText.Lore lore = BibText.createLore();
+            lore.addLine(Text.literal("Your fly speed is now: ").formatted(Formatting.GRAY)
+                    .append(Text.literal((l * 100) + "").formatted(Formatting.GOLD)));
+
+            source.sendFeedback(lore, false);
+
+            return 1;
+        });
     }
 
     private static void registerChunkWatchCommands(CommandLeaf perf) {
