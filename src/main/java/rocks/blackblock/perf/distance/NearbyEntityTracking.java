@@ -11,9 +11,7 @@ import rocks.blackblock.perf.interfaces.player_watching.OptimizedEntityTracker;
 import rocks.blackblock.perf.mixin.accessors.IThreadedAnvilChunkStorageTicketManager;
 import rocks.blackblock.perf.util.SimpleObjectPool;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class NearbyEntityTracking {
@@ -44,11 +42,17 @@ public class NearbyEntityTracking {
     private final AtomicLong ticks = new AtomicLong(0L);
     private final ObjectLinkedOpenHashSet<StagedTracker> stagingTrackers = new ObjectLinkedOpenHashSet<>();
 
-    private void addEntityTrackerAreaMap(ServerChunkLoadingManager.EntityTracker tracker) {
-        if (tracker.entity instanceof ServerPlayerEntity player) {
-            this.addPlayer(player);
+    public Set<ServerPlayerEntity> getTrackedPlayers() {
+        Set<ServerPlayerEntity> result = new HashSet<>();
+
+        for (ServerPlayerEntity player : this.playerTrackers.keySet()) {
+            result.add(player);
         }
 
+        return result;
+    }
+
+    private void addEntityTrackerAreaMap(ServerChunkLoadingManager.EntityTracker tracker) {
         // update is done lazily on next tickEntityMovement
         final ChunkPos pos = getEntityChunkPos(tracker.entity);
         this.areaMap.add(
@@ -61,6 +65,11 @@ public class NearbyEntityTracking {
     }
 
     public void addEntityTracker(ServerChunkLoadingManager.EntityTracker tracker) {
+
+        if (tracker.entity instanceof ServerPlayerEntity player) {
+            this.addPlayer(player);
+        }
+
         if (OPTIMIZED_ENTITY_TRACKING_USE_STAGING_AREA) {
             stagingTrackers.addAndMoveToLast(new StagedTracker(tracker, ticks.get()));
             for (ServerPlayerEntity player : this.playerTrackers.keySet()) {
@@ -126,7 +135,7 @@ public class NearbyEntityTracking {
         for (Reference2LongMap.Entry<ServerChunkLoadingManager.EntityTracker> entry : this.tracker2ChunkPos.reference2LongEntrySet()) {
             final ChunkPos pos = getEntityChunkPos((entry.getKey()).entity);
             if (pos.toLong() != entry.getLongValue()) {
-                //this.areaMap.update(entry.getKey(), pos.x, pos.z, getChunkViewDistance(entry.getKey()));
+                this.areaMap.update(entry.getKey(), pos.x, pos.z, getChunkViewDistance(entry.getKey()));
                 entry.setValue(pos.toLong());
             }
         }
@@ -182,20 +191,24 @@ public class NearbyEntityTracking {
 
 
         final List<ServerPlayerEntity> players = ((IThreadedAnvilChunkStorageTicketManager) ticketManager).getField_17443().world.getPlayers();
-        for(StagedTracker staged : this.stagingTrackers) {
+        for (StagedTracker staged : this.stagingTrackers) {
             final ServerChunkLoadingManager.EntityTracker entityTracker = staged.tracker();
             ChunkSectionPos chunkSectionPos = entityTracker.trackedSection;
             final Entity entity = entityTracker.entity;
             ChunkSectionPos chunkSectionPos2 = ChunkSectionPos.from(entity);
             boolean bl = !Objects.equals(chunkSectionPos, chunkSectionPos2);
-            entityTracker.updateTrackedStatus(players);
             if (bl) {
+                entityTracker.updateTrackedStatus(players);
                 entityTracker.trackedSection = chunkSectionPos2;
             }
 
             if (bl || ticketManager.shouldTickEntities(chunkSectionPos2.toChunkPos().toLong())) {
                 ((OptimizedEntityTracker) entityTracker).bb$tryTick();
             }
+        }
+
+        for (StagedTracker staged : this.stagingTrackers) {
+            staged.tracker().updateTrackedStatus(players);
         }
     }
 

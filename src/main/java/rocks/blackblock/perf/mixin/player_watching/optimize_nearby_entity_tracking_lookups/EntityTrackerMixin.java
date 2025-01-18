@@ -60,31 +60,13 @@ public abstract class EntityTrackerMixin implements OptimizedEntityTracker {
         this.bb$prev_x = pos.x;
         this.bb$prev_y = pos.y;
         this.bb$prev_z = pos.z;
+        this.trackedSection = ChunkSectionPos.from(this.entity);
     }
 
     @Override
     public void bb$tryTick() {
         this.trackedSection = ChunkSectionPos.from(this.entity);
-        if (!this.listeners.isEmpty()) {
-            this.entry.tick();
-        } else {
-            final List<Entity> current_passengers = this.entity.getPassengerList();
-
-            if (!this.entry.lastPassengers.equals(current_passengers)) {
-                this.entry.lastPassengers = current_passengers;
-            }
-
-            if (this.entity instanceof ServerPlayerEntity player) {
-                // for some reasons mojang decides to sync entity data here, so we need to do it manually
-
-                if (this.entity.velocityModified) {
-                    player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(this.entity));
-                    this.entity.velocityModified = false;
-                }
-
-                this.entry.bb$syncEntityData();
-            }
-        }
+        this.entry.tick();
     }
 
     @Inject(
