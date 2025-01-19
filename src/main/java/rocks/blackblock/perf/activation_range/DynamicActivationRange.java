@@ -277,13 +277,13 @@ public class DynamicActivationRange {
         EntityCluster group = entity.bb$getCluster();
 
         if (group != null) {
-            if (group.getScore() > 3 && info.isRandomlyDisabled()) {
+            double group_score = group.getScore();
+
+            if (group_score > 3 && info.isRandomlyDisabled()) {
                 return false;
             }
 
-            boolean is_afk = player.bb$isAfk();
-
-            if (group.getScore() > 6 && is_afk) {
+            if (group_score > 6 && player.bb$isAfk() && info.isBusy()) {
                 return false;
             }
         }
