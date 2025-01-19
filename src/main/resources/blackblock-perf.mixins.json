@@ -116,6 +116,7 @@
         "threading.RedStoneWireBlockMixin",
         "threading.ServerChunkLoadingManagerMixinForAsyncSaving",
         "threading.ServerChunkManagerMixin",
+        "threading.ServerPlayerEntityMixinForTeleportFix",
         "threading.ServerWorldMixinForProfiler",
         "threading.ServerWorldMixinForQueueDraining",
         "threading.WorldAccessor",
