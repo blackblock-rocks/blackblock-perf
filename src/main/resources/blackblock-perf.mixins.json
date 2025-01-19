@@ -62,6 +62,7 @@
         "math.JOMLMathMixinForFastmath",
         "math.MathHelperMixinForIntrinsic",
         "math.Vec3dMixinForFastNormalization",
+        "networking.no_flush.ClientConnectionMixinForDisablingTickFlush",
         "no_palette_locking.PalettedContainerMixin",
         "pathfinding.EntityNavigationMixin",
         "pathfinding.TargetPredicateMixin",
