@@ -9,9 +9,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.block.WireOrientation;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
@@ -32,23 +34,33 @@ public abstract class RedStoneWireBlockMixin {
      * To ensure no interference between threads the field is replaced with this thread local one.
      */
     @Unique
-    private final ThreadLocal<Boolean> wiresGivePowerSafe = ThreadLocal.withInitial(() -> true);
+    private final ThreadLocal<Boolean> bb$wiresGivePowerSafe = ThreadLocal.withInitial(() -> true);
 
     @Shadow
     protected abstract BlockState getPlacementState(BlockView world, BlockState state, BlockPos pos);
 
-    @Inject(method = "getReceivedRedstonePower", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/World;getReceivedRedstonePower(Lnet/minecraft/util/math/BlockPos;)I",
-            shift = At.Shift.BEFORE))
-    private void getReceivedRedstonePowerBefore(World world, BlockPos pos, CallbackInfoReturnable<Integer> ci) {
-        this.wiresGivePowerSafe.set(false);
+    @Inject(
+        method = "update",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/RedstoneController;update(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/world/block/WireOrientation;Z)V",
+            shift = At.Shift.BEFORE
+        )
+    )
+    private void getReceivedRedstonePowerBefore(World world, BlockPos pos, BlockState state, WireOrientation orientation, boolean blockAdded, CallbackInfo ci) {
+        this.bb$wiresGivePowerSafe.set(false);
     }
 
-    @Inject(method = "getReceivedRedstonePower", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/World;getReceivedRedstonePower(Lnet/minecraft/util/math/BlockPos;)I",
-            shift = At.Shift.AFTER))
-    private void getReceivedRedstonePowerAfter(World world, BlockPos pos, CallbackInfoReturnable<Integer> ci) {
-        this.wiresGivePowerSafe.set(true);
+    @Inject(
+        method = "update",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/RedstoneController;update(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/world/block/WireOrientation;Z)V",
+            shift = At.Shift.AFTER
+        )
+    )
+    private void getReceivedRedstonePowerAfter(World world, BlockPos pos, BlockState state, WireOrientation orientation, boolean blockAdded, CallbackInfo ci) {
+        this.bb$wiresGivePowerSafe.set(true);
     }
 
     /**
@@ -57,7 +69,7 @@ public abstract class RedStoneWireBlockMixin {
      */
     @Overwrite
     public boolean emitsRedstonePower(BlockState state) {
-        return this.wiresGivePowerSafe.get();
+        return this.bb$wiresGivePowerSafe.get();
     }
 
     /**
@@ -66,7 +78,7 @@ public abstract class RedStoneWireBlockMixin {
      */
     @Overwrite
     public int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return !this.wiresGivePowerSafe.get() ? 0 : state.getWeakRedstonePower(world, pos, direction);
+        return !this.bb$wiresGivePowerSafe.get() ? 0 : state.getWeakRedstonePower(world, pos, direction);
     }
 
     /**
@@ -75,7 +87,7 @@ public abstract class RedStoneWireBlockMixin {
      */
     @Overwrite
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        if (!this.wiresGivePowerSafe.get() || direction == Direction.DOWN) {
+        if (!this.bb$wiresGivePowerSafe.get() || direction == Direction.DOWN) {
             return 0;
         }
 
