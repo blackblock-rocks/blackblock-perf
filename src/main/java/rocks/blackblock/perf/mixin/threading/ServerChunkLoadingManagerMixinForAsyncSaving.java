@@ -1,13 +1,18 @@
 package rocks.blackblock.perf.mixin.threading;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import it.unimi.dsi.fastutil.objects.ObjectCollection;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongIterators;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import net.minecraft.server.world.ChunkHolder;
 import net.minecraft.server.world.ServerChunkLoadingManager;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Util;
 import net.minecraft.util.thread.ThreadExecutor;
+import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,7 +37,7 @@ public abstract class ServerChunkLoadingManagerMixinForAsyncSaving implements Bi
     private boolean bb$save_is_backlogged = false;
 
     @Shadow
-    protected abstract boolean save(ChunkHolder chunkHolder);
+    protected abstract boolean save(ChunkHolder chunkHolder, long currentTime);
 
     @Shadow
     @Final
@@ -45,37 +50,49 @@ public abstract class ServerChunkLoadingManagerMixinForAsyncSaving implements Bi
     @Final
     public ServerWorld world;
 
+    @Shadow private volatile Long2ObjectLinkedOpenHashMap<ChunkHolder> chunkHolders;
+
     @Redirect(
-            method = "unloadChunks",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lit/unimi/dsi/fastutil/objects/ObjectCollection;iterator()Lit/unimi/dsi/fastutil/objects/ObjectIterator;"
-            )
+        method = "saveChunks",
+        at = @At(
+            value = "INVOKE",
+            target = "Lit/unimi/dsi/fastutil/longs/LongSet;iterator()Lit/unimi/dsi/fastutil/longs/LongIterator;"
+        )
     )
-    private ObjectIterator<ChunkHolder> bb$onIterateOverChunkHolders(ObjectCollection<ChunkHolder> instance, @Local BooleanSupplier keep_going) {
+    private LongIterator bb$onIterateOverChunkHolders(LongSet instance, @Local BooleanSupplier keep_going) {
 
         // Throttle saving chunks less when we're backlogged
         if (this.bb$save_is_backlogged) {
             if (BibPerf.ON_EVEN_TICK) {
-                return ObjectIterators.emptyIterator();
+                return LongIterators.EMPTY_ITERATOR;
             }
         } else {
             // Only save active chunks every second
             if (!BibPerf.ON_FULL_SECOND) {
-                return ObjectIterators.emptyIterator();
+                return LongIterators.EMPTY_ITERATOR;
             }
         }
 
         if (instance.isEmpty()) {
-            return ObjectIterators.emptyIterator();
+            return LongIterators.EMPTY_ITERATOR;
         }
 
-        ObjectIterator<ChunkHolder> iterator = instance.iterator();
+        long now = Util.getMeasuringTimeMs();
+        LongIterator iterator = instance.iterator();
         int save_count = 0;
 
         while(save_count < 20 && keep_going.getAsBoolean() && iterator.hasNext()) {
-            if (this.save(iterator.next())) {
-                ++save_count;
+            long chunk_pos = iterator.nextLong();
+            ChunkHolder chunkHolder = this.chunkHolders.get(chunk_pos);
+            Chunk chunk = chunkHolder != null ? chunkHolder.getLatest() : null;
+
+            if (chunk != null && chunk.needsSaving()) {
+                if (this.save(chunkHolder, now)) {
+                    ++save_count;
+                    iterator.remove();
+                }
+            } else {
+                iterator.remove();
             }
         }
 
@@ -87,7 +104,7 @@ public abstract class ServerChunkLoadingManagerMixinForAsyncSaving implements Bi
             this.bb$save_is_backlogged = false;
         }
 
-        return ObjectIterators.emptyIterator();
+        return LongIterators.EMPTY_ITERATOR;
     }
 
     @Unique
