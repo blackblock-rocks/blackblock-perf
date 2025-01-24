@@ -19,11 +19,11 @@ import org.spongepowered.asm.mixin.Shadow;
 public abstract class BeeEntityMixin extends AnimalEntity {
 
     @Shadow
-    abstract boolean isHiveValid();
-
-    @Shadow
     @Nullable
     BlockPos hivePos;
+
+    @Shadow
+    abstract boolean hasValidHive();
 
     protected BeeEntityMixin(EntityType<? extends AnimalEntity> entityType, World world) {
         super(entityType, world);
@@ -31,7 +31,7 @@ public abstract class BeeEntityMixin extends AnimalEntity {
 
     @Override
     public void bb$inactiveTick() {
-        if (this.bb$getPotentialTickCount() % 20 == 0 && !this.isHiveValid()) {
+        if (this.bb$getPotentialTickCount() % 20 == 0 && !this.hasValidHive()) {
             this.hivePos = null;
         }
 

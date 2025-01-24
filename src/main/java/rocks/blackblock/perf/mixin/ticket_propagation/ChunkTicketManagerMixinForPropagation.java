@@ -105,7 +105,7 @@ public abstract class ChunkTicketManagerMixinForPropagation {
 
     @Redirect(
         method = {
-            "purge",
+            "purgeExpiredTickets",
             "addTicket(JLnet/minecraft/server/world/ChunkTicket;)V",
             "removeTicket(JLnet/minecraft/server/world/ChunkTicket;)V",
             "removePersistentTickets"

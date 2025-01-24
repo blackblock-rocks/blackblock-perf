@@ -19,6 +19,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
+import rocks.blackblock.bib.BibMod;
 import rocks.blackblock.bib.command.CommandCreator;
 import rocks.blackblock.bib.command.CommandLeaf;
 import rocks.blackblock.bib.debug.rendering.RenderLayer;
@@ -49,6 +50,10 @@ public class PerfCommands {
         registerAfkCommands(perf);
         registerChunkWatchCommands(perf);
         registerFlySpeedCommand(perf);
+
+        if (!BibMod.PLATFORM.isModLoaded("blackblock-core")) {
+            registerTweakCommands(blackblock);
+        }
     }
 
     private static void registerFlySpeedCommand(CommandLeaf perf) {
@@ -457,5 +462,21 @@ public class PerfCommands {
 
             return 1;
         });
+    }
+
+    /**
+     * Register all the tweak commands
+     *
+     * @since    0.2.0
+     */
+    private static void registerTweakCommands(CommandLeaf blackblock) {
+
+        // Get the "tweaks" leaf of the "blackblock" root
+        CommandLeaf global_tweaks = blackblock.getChild("tweaks");
+        BibMod.GLOBAL_TWEAKS.addToCommandLeaf(global_tweaks);
+
+        // Get the "tweaks" root leaf, meant for players
+        CommandLeaf player_tweaks = CommandCreator.getRoot("tweaks");
+        BibMod.PLAYER_TWEAKS.addToCommandLeaf(player_tweaks);
     }
 }

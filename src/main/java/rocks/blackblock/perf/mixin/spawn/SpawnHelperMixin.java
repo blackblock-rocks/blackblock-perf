@@ -7,6 +7,7 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
@@ -15,7 +16,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -25,6 +25,8 @@ import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.spawn.CheckBelowCapPerWorld;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -37,15 +39,6 @@ import java.util.Objects;
 public abstract class SpawnHelperMixin {
 
     /**
-     * Always disable "rare" or "persistent" spawns
-     * @since 0.1.0
-     */
-    @ModifyVariable(method = "spawn", at = @At("HEAD"), index = 5, argsOnly = true)
-    private static boolean bb$neverSpawnPersistent(boolean shouldSpawnPersistent) {
-        return false;
-    }
-
-    /**
      * Do some trickery to make it spawn less often
      * @since 0.1.0
      */
@@ -53,10 +46,14 @@ public abstract class SpawnHelperMixin {
             method = "spawn",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/entity/SpawnGroup;isRare()Z"
+                    target = "Lnet/minecraft/world/SpawnHelper$Info;canSpawn(Lnet/minecraft/entity/SpawnGroup;Lnet/minecraft/util/math/ChunkPos;)Z"
             )
     )
     private static boolean bb$shouldCancelSpawn(boolean original, ServerWorld world, @Local(ordinal = 0) SpawnGroup category) {
+
+        if (!original) {
+            return false;
+        }
 
         int interval = category.bb$getSpawnInterval(world);
         BibPerf.Info info = world.bb$getPerformanceInfo();
@@ -82,7 +79,7 @@ public abstract class SpawnHelperMixin {
             locals = LocalCapture.CAPTURE_FAILHARD,
             cancellable = true
     )
-    private static void preventSpawn(ServerWorld world, WorldChunk chunk, SpawnHelper.Info info, boolean spawnAnimals, boolean spawnMonsters, boolean rareSpawn, CallbackInfo ci, SpawnGroup[] var6, int var7, int var8, SpawnGroup spawnGroup) {
+    private static void preventSpawn(ServerWorld world, WorldChunk chunk, SpawnHelper.Info info, List<SpawnGroup> spawnableGroups, CallbackInfo ci, Profiler profiler, Iterator var5, SpawnGroup spawnGroup) {
         var cap_info = (CheckBelowCapPerWorld) info;
         var is_below_cap = cap_info.bb$isBelowCap(world, spawnGroup, chunk.getPos());
 

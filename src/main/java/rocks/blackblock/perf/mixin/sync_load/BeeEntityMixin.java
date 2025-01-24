@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import rocks.blackblock.bib.util.BibChunk;
 
@@ -25,26 +24,8 @@ import rocks.blackblock.bib.util.BibChunk;
 @Mixin(BeeEntity.class)
 public abstract class BeeEntityMixin extends AnimalEntity {
 
-    @Shadow
-    @Nullable
-    BlockPos hivePos;
-
     protected BeeEntityMixin(EntityType<? extends AnimalEntity> entityType, World world) {
         super(entityType, world);
-    }
-
-    @Inject(
-        method = "isHiveNearFire",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/World;getBlockEntity(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/entity/BlockEntity;"
-        ),
-        cancellable = true
-    )
-    private void bb$onIsHiveNearFire(CallbackInfoReturnable<Boolean> cir) {
-        if (this.bb$isTooFarOrUnloaded(this.hivePos)) {
-            cir.setReturnValue(false);
-        }
     }
 
     @Inject(
@@ -53,27 +34,37 @@ public abstract class BeeEntityMixin extends AnimalEntity {
         cancellable = true
     )
     private void bb$onDoesHiveHaveSpace(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-        if (this.bb$isTooFarOrUnloaded(pos)) {
+        if (this.bb$isChunkLoaded(pos)) {
             cir.setReturnValue(false);
         }
     }
 
-    @Redirect(
-        method = "isHiveValid",
+    @Inject(
+        method = "isWithinDistance",
         at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/entity/passive/BeeEntity;isTooFar(Lnet/minecraft/util/math/BlockPos;)Z"
-        )
+            value = "RETURN"
+        ),
+        cancellable = true
     )
-    private boolean bb$onIsHiveValid(BeeEntity instance, BlockPos pos) {
-        return this.bb$isTooFarOrUnloaded(pos);
+    private void bb$onIsWithinDistance(BlockPos pos, int distance, CallbackInfoReturnable<Boolean> cir) {
+        boolean result = cir.getReturnValue();
+
+        if (!result) {
+            return;
+        }
+
+        result = this.bb$isChunkLoaded(pos);
+
+        if (!result) {
+            cir.setReturnValue(result);
+        }
     }
 
     /**
      * Make sure the other position is allowed
      */
     @Unique
-    private boolean bb$isTooFarOrUnloaded(BlockPos distant_pos) {
+    private boolean bb$isChunkLoaded(BlockPos distant_pos) {
         if (distant_pos == null) {
             return false;
         }
@@ -84,10 +75,6 @@ public abstract class BeeEntityMixin extends AnimalEntity {
             return false;
         }
 
-        if (!our_pos.isWithinDistance(distant_pos, 32)) {
-            return true;
-        }
-
-        return !BibChunk.isChunkLoaded(this.getWorld(), distant_pos);
+        return BibChunk.isChunkLoaded(this.getWorld(), distant_pos);
     }
 }

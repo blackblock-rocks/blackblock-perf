@@ -3,6 +3,7 @@ package rocks.blackblock.perf.mixin.spawn;
 import net.minecraft.entity.effect.InfestedStatusEffect;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.SilverfishEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +30,7 @@ public class InfestedStatusEffectMixin {
             locals = LocalCapture.CAPTURE_FAILHARD,
             cancellable = true
     )
-    private void bb$enforceMobcap(World world, LivingEntity entity, double x, double y, double z, CallbackInfo ci, SilverfishEntity silverfishEntity) {
+    private void bb$enforceMobcap(ServerWorld world, LivingEntity entity, double x, double y, double z, CallbackInfo ci, SilverfishEntity silverfishEntity) {
         boolean can_spawn = DynamicSpawns.canSpawnForFarm(
                 silverfishEntity,
                 entity.getWorld(),

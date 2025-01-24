@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ChunkHolder.class)
 public class ChunkHolderMixinForBroadcasts {
@@ -29,7 +30,7 @@ public class ChunkHolderMixinForBroadcasts {
             opcode = Opcodes.PUTFIELD
         )
     )
-    private void bb$onBlockChanged(BlockPos blockPos, CallbackInfo ci) {
+    private void bb$onBlockChanged(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         this.bb$requiresBroadcast();
     }
 
@@ -40,7 +41,7 @@ public class ChunkHolderMixinForBroadcasts {
                     target = "Ljava/util/BitSet;set(I)V"
             )
     )
-    private void bb$onLightChanged(LightType lightType, int i, CallbackInfo ci) {
+    private void bb$onLightChanged(LightType lightType, int y, CallbackInfoReturnable<Boolean> cir) {
         this.bb$requiresBroadcast();
     }
 
