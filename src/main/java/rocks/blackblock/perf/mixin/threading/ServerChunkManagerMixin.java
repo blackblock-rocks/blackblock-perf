@@ -3,6 +3,7 @@ package rocks.blackblock.perf.mixin.threading;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.server.world.*;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.GameRules;
@@ -22,6 +23,7 @@ import rocks.blackblock.perf.thread.DynamicThreads;
 import rocks.blackblock.perf.thread.WithMutableThread;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -70,7 +72,7 @@ public abstract class ServerChunkManagerMixin
     ServerWorld world;
 
     @Shadow
-    private long lastMobSpawningTime;
+    private long lastTickTime;
 
     @Shadow
     @Final
@@ -141,8 +143,8 @@ public abstract class ServerChunkManagerMixin
         }
 
         long current_time = this.world.getTime();
-        long time_since_last_spawn = current_time - this.lastMobSpawningTime;
-        this.lastMobSpawningTime = current_time;
+        long time_since_last_spawn = current_time - this.lastTickTime;
+        this.lastTickTime = current_time;
 
         this.world.bb$resetIceAndSnowTick();
 
@@ -257,7 +259,8 @@ public abstract class ServerChunkManagerMixin
 
         chunk.increaseInhabitedTime(time_since_last_spawn);
         if (this.bb$do_mob_spawning && (this.spawnMonsters || this.spawnAnimals) && this.world.getWorldBorder().contains(chunk_pos)) {
-            SpawnHelper.spawn(this.world, chunk, spawn_info, this.spawnAnimals, this.spawnMonsters, is_time_to_spread_surface);
+            List<SpawnGroup> spawnable_list = SpawnHelper.collectSpawnableGroups(spawn_info, this.spawnAnimals, this.spawnMonsters, is_time_to_spread_surface);
+            SpawnHelper.spawn(this.world, chunk, spawn_info, spawnable_list);
         }
 
         if (this.world.shouldTickBlocksInChunk(chunk_pos.toLong())) {
