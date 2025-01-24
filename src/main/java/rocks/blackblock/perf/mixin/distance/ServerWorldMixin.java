@@ -3,6 +3,7 @@ package rocks.blackblock.perf.mixin.distance;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.entity.ai.goal.WolfBegGoal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.SimulationDistanceS2CPacket;
 import net.minecraft.registry.DynamicRegistryManager;
@@ -14,9 +15,7 @@ import net.minecraft.server.world.ServerWorld;
 
 import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.world.MutableWorldProperties;
-import net.minecraft.world.StructureWorldAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.*;
 import net.minecraft.world.dimension.DimensionType;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -41,7 +40,7 @@ import java.util.function.Supplier;
  * @since    0.1.0
  */
 @Mixin(ServerWorld.class)
-public abstract class ServerWorldMixin extends World implements CustomDistances, StructureWorldAccess {
+public abstract class ServerWorldMixin extends World implements EntityLookupView, CustomDistances, StructureWorldAccess {
 
     @Shadow
     @Final
@@ -172,9 +171,10 @@ public abstract class ServerWorldMixin extends World implements CustomDistances,
 
         ServerPlayerEntity nearestPlayer = null;
         double nearestDistance = Double.MAX_VALUE;
+        ServerWorld self = (ServerWorld) (Object) this;
         for (Object __player : playersWatchingChunkArray) {
             if (__player instanceof ServerPlayerEntity player) {
-                if (targetPredicate == null || targetPredicate.test(entity, player)) {
+                if (targetPredicate == null || targetPredicate.test(self, entity, player)) {
                     final double distance = player.squaredDistanceTo(x, y, z);
                     if (distance < nearestDistance) {
                         nearestDistance = distance;

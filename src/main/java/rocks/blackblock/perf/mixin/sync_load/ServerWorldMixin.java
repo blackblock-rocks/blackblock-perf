@@ -29,10 +29,8 @@ import java.util.function.Supplier;
 @Mixin(ServerWorld.class)
 public abstract class ServerWorldMixin extends World {
 
-    private ServerWorld bb$self = (ServerWorld) (Object) this;
-
-    protected ServerWorldMixin(MutableWorldProperties properties, RegistryKey<World> registryRef, DynamicRegistryManager registryManager, RegistryEntry<DimensionType> dimensionEntry, Supplier<Profiler> profiler, boolean isClient, boolean debugWorld, long biomeAccess, int maxChainedNeighborUpdates) {
-        super(properties, registryRef, registryManager, dimensionEntry, profiler, isClient, debugWorld, biomeAccess, maxChainedNeighborUpdates);
+    protected ServerWorldMixin(MutableWorldProperties properties, RegistryKey<World> registryRef, DynamicRegistryManager registryManager, RegistryEntry<DimensionType> dimensionEntry, boolean isClient, boolean debugWorld, long seed, int maxChainedNeighborUpdates) {
+        super(properties, registryRef, registryManager, dimensionEntry, isClient, debugWorld, seed, maxChainedNeighborUpdates);
     }
 
     @Override
@@ -40,7 +38,7 @@ public abstract class ServerWorldMixin extends World {
     public BlockHitResult raycast(RaycastContext context) {
 
         Vec3d to = context.getEnd();
-        if (BibChunk.isChunkLoaded(this.bb$self, MathHelper.floor(to.x) >> 4, MathHelper.floor(to.z) >> 4)) {
+        if (BibChunk.isChunkLoaded((ServerWorld) (Object) this, MathHelper.floor(to.x) >> 4, MathHelper.floor(to.z) >> 4)) {
             return super.raycast(context);
         } else {
             Vec3d vec3 = context.getStart().subtract(to);
