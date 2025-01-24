@@ -4,6 +4,8 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.ChickenEntity;
 import net.minecraft.item.Items;
+import net.minecraft.loot.LootTables;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
@@ -33,10 +35,13 @@ public abstract class ChickenEntityMixin extends AnimalEntity {
     public void bb$inactiveTick() {
         super.bb$inactiveTick();
 
-        if (!this.hasJockey && this.age >= 0 && this.isAlive() && --this.eggLayTime <= 0) {
-            this.playSound(SoundEvents.ENTITY_CHICKEN_EGG, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-            this.dropItem(Items.EGG);
-            this.emitGameEvent(GameEvent.ENTITY_PLACE);
+        if (!this.hasJockey && this.age >= 0 && this.isAlive() && --this.eggLayTime <= 0 && this.getWorld() instanceof ServerWorld serverWorld) {
+
+            if (this.forEachGiftedItem(serverWorld, LootTables.CHICKEN_LAY_GAMEPLAY, this::dropStack)) {
+                this.playSound(SoundEvents.ENTITY_CHICKEN_EGG, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+                this.emitGameEvent(GameEvent.ENTITY_PLACE);
+            }
+
             this.eggLayTime = this.random.nextInt(6000) + 6000;
         }
     }
