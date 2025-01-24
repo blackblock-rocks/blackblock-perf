@@ -408,7 +408,7 @@ public class DynamicActivationRange {
             if (!entity.isOnGround() && !entity.isInFluid() && !(entity instanceof FlyingEntity || entity instanceof BatEntity)) {
                 return 10;
             }
-        } else if (!projectile.inGround) {
+        } else if (!projectile.isInGround()) {
             return 1;
         }
 

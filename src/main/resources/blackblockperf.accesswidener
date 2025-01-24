@@ -9,7 +9,6 @@ accessible field net/minecraft/world/SpawnDensityCapper playersToDensityCap Ljav
 accessible field net/minecraft/world/SpawnDensityCapper$DensityCap spawnGroupsToDensity Lit/unimi/dsi/fastutil/objects/Object2IntMap;
 accessible class net/minecraft/entity/effect/InfestedStatusEffect
 accessible field net/minecraft/block/AbstractBlock collidable Z
-accessible field net/minecraft/entity/projectile/PersistentProjectileEntity inGround Z
 accessible field net/minecraft/entity/LivingEntity jumping Z
 accessible field net/minecraft/entity/passive/BeeEntity pollinateGoal Lnet/minecraft/entity/passive/BeeEntity$PollinateGoal;
 accessible class net/minecraft/entity/passive/BeeEntity$PollinateGoal
@@ -18,6 +17,9 @@ accessible field net/minecraft/entity/mob/MobEntity goalSelector Lnet/minecraft/
 accessible field net/minecraft/entity/mob/MobEntity targetSelector Lnet/minecraft/entity/ai/goal/GoalSelector;
 accessible field net/minecraft/server/world/ServerChunkManager ticketManager Lnet/minecraft/server/world/ChunkTicketManager;
 accessible method net/minecraft/server/world/ChunkTicketManager setWatchDistance (I)V
+
+# Activation range
+accessible method net/minecraft/entity/projectile/PersistentProjectileEntity isInGround ()Z
 
 # Entity tracker optimizations
 accessible class net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker
