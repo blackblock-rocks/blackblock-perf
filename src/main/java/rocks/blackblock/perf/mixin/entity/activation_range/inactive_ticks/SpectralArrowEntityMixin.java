@@ -24,7 +24,7 @@ public abstract class SpectralArrowEntityMixin extends PersistentProjectileEntit
     public void bb$inactiveTick() {
         super.bb$inactiveTick();
 
-        if (this.inGround) {
+        if (this.isInGround()) {
             this.age();
         }
     }

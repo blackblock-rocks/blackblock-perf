@@ -24,7 +24,7 @@ public abstract class ArrowEntityMixin extends PersistentProjectileEntity {
     public void bb$inactiveTick() {
         super.bb$inactiveTick();
 
-        if (this.inGround) {
+        if (this.isInGround()) {
             this.age();
         }
     }
