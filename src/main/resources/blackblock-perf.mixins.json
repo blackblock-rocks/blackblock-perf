@@ -118,7 +118,6 @@
         "threading.ServerChunkLoadingManagerMixinForAsyncSaving",
         "threading.ServerChunkManagerMixin",
         "threading.ServerPlayerEntityMixinForTeleportFix",
-        "threading.ServerWorldMixinForProfiler",
         "threading.ServerWorldMixinForQueueDraining",
         "threading.WorldAccessor",
         "ticket_propagation.ChunkTicketManagerMixinForPropagation",
