@@ -17,7 +17,7 @@ public class OffloadedThreadExecutor extends ThreadExecutor<Runnable> {
     }
 
     @Override
-    protected Runnable createTask(Runnable runnable) {
+    public Runnable createTask(Runnable runnable) {
         return runnable;
     }
 
