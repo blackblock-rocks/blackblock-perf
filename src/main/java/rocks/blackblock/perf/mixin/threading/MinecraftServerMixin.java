@@ -5,15 +5,19 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.network.packet.s2c.play.WorldTimeUpdateS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
+import rocks.blackblock.perf.debug.BlackblockWorldProfiler;
 import rocks.blackblock.perf.debug.PerfDebug;
 import rocks.blackblock.perf.dynamic.DynamicSetting;
 import rocks.blackblock.perf.thread.DynamicThreads;
@@ -60,6 +64,26 @@ public abstract class MinecraftServerMixin {
         }
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Start all the individual world profilers
+     */
+    @Inject(method = "startTickMetrics", at = @At("HEAD"))
+    private void bb$onStartTickMetrics(CallbackInfoReturnable<Profiler> cir) {
+        for (ServerWorld world : this.getWorlds()) {
+            world.bb$getWorldProfiler().startTick();
+        }
+    }
+
+    /**
+     * End all the individual world profilers
+     */
+    @Inject(method = "endTickMetrics", at = @At("HEAD"))
+    private void bb$onEndTickMetrics(CallbackInfo ci) {
+        for (ServerWorld world : this.getWorlds()) {
+            world.bb$getWorldProfiler().endTick();
+        }
     }
 
     /**
@@ -153,6 +177,17 @@ public abstract class MinecraftServerMixin {
                 for (ServerWorld world : worlds) {
                     if (!finished_worlds.contains(world)) {
                         BibLog.log(" - " + world.getRegistryKey().getValue());
+
+                        BlackblockWorldProfiler profiler = world.bb$getWorldProfiler();
+                        BibLog.log("  » Profiler at", profiler);
+
+                        try {
+                            for (ServerPlayerEntity player : world.getPlayers()) {
+                                BibLog.log("   --", player.getNameForScoreboard(), "at", player.getBlockPos());
+                            }
+                        } catch (Throwable t) {
+                            // Ignore
+                        }
                     }
                 }
             }

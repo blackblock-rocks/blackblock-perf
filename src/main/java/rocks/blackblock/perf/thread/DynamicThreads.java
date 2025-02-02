@@ -48,7 +48,6 @@ public class DynamicThreads {
 	// Thread queues
 	private static final ConcurrentHashMap<Thread, ConcurrentLinkedQueue<Runnable>> THREAD_QUEUES = new ConcurrentHashMap<>();
 
-
 	/**
 	 * Initialize the settings
 	 * @since    0.1.0
