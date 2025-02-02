@@ -43,6 +43,12 @@ public abstract class ServerPlayerEntityMixinForDistance implements PlayerSpecif
     @Unique
     private int bb$personal_view_distance = 6;
 
+    @Unique
+    private int bb$reduced_view_distance_count = 0;
+
+    @Unique
+    private boolean bb$has_reduced_view_distance = false;
+
     /**
      * Listen for client setting changes
      * @since    0.1.0
@@ -121,11 +127,35 @@ public abstract class ServerPlayerEntityMixinForDistance implements PlayerSpecif
         if (is_afk) {
             max_view_distance = 5;
         } else if (max_view_distance > 5) {
+            ServerWorld world = this.getServerWorld();
+            var info = world.bb$getPerformanceInfo();
 
-            if (BibEntity.isInCave(this.bb$self)) {
-                max_view_distance = 5;
-            } else if (BibEntity.isInEnclosedSpace(this.bb$self)) {
-                max_view_distance = 5;
+            if (info.isOverloaded()) {
+                if (BibEntity.isInCave(this.bb$self)) {
+                    this.bb$reduced_view_distance_count++;
+                } else if (BibEntity.isInEnclosedSpace(this.bb$self)) {
+                    this.bb$reduced_view_distance_count++;
+                } else {
+                    this.bb$reduced_view_distance_count--;
+                }
+
+                if (this.bb$reduced_view_distance_count > 5) {
+                    this.bb$reduced_view_distance_count = 5;
+                } else if (this.bb$reduced_view_distance_count < 0) {
+                    this.bb$reduced_view_distance_count = 0;
+                }
+
+                if (this.bb$reduced_view_distance_count > 3) {
+                    this.bb$has_reduced_view_distance = true;
+                    max_view_distance = 5;
+                } else if (this.bb$reduced_view_distance_count == 0) {
+                    this.bb$has_reduced_view_distance = false;
+                } else if (this.bb$has_reduced_view_distance) {
+                    max_view_distance = 5;
+                }
+            } else {
+                this.bb$reduced_view_distance_count = 0;
+                this.bb$has_reduced_view_distance = false;
             }
         }
 
