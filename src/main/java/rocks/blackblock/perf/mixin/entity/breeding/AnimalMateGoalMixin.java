@@ -2,6 +2,7 @@ package rocks.blackblock.perf.mixin.entity.breeding;
 
 import net.minecraft.entity.ai.goal.AnimalMateGoal;
 import net.minecraft.entity.passive.AnimalEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -11,7 +12,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rocks.blackblock.perf.activation_range.EntityCluster;
-import rocks.blackblock.perf.interfaces.activation_range.ClusteredEntity;
+
+import java.util.Optional;
 
 /**
  * Prevent animals from breeding too many mobs
@@ -29,16 +31,16 @@ public class AnimalMateGoalMixin {
     @Inject(method = "breed", at = @At("HEAD"), cancellable = true)
     private void bb$onBreed(CallbackInfo ci) {
 
-        var cluster = ((ClusteredEntity) this.animal).bb$getCluster();
+        var cluster = this.animal.bb$getCluster();
         boolean allowed = true;
 
         if (cluster != null) {
-            if (cluster.getSize() > 28) {
+            if (cluster.getSize() > 32) {
                 allowed = false;
             } else {
                 EntityCluster super_cluster = cluster.getSuperCluster();
                 if (super_cluster != null) {
-                    if (super_cluster.getSize() > 32) {
+                    if (super_cluster.getSize() > 42) {
                         allowed = false;
                     }
                 }
@@ -46,8 +48,9 @@ public class AnimalMateGoalMixin {
         }
 
         if (allowed) {
-            Box box = this.animal.getBoundingBox().expand(64);
-            allowed = this.animal.getWorld().getOtherEntities(this.animal, box).size() < 48;
+            Box box = this.animal.getBoundingBox().expand(18);
+            int entities_in_range = this.animal.getWorld().getOtherEntities(this.animal, box).size();
+            allowed = entities_in_range < 60;
         }
 
         if (!allowed) {
@@ -56,6 +59,10 @@ public class AnimalMateGoalMixin {
             this.mate.resetLoveTicks();
             this.mate.setBreedingAge(6000);
             ci.cancel();
+
+            Optional.ofNullable(this.animal.getLovingPlayer()).or(() -> Optional.ofNullable(this.mate.getLovingPlayer())).ifPresent(player -> {
+                player.sendMessage(Text.literal("Breeding aborted: too many entities in range"), true);
+            });
         }
     }
 
