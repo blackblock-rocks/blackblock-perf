@@ -1,7 +1,12 @@
 package rocks.blackblock.perf.mixin.entity.breeding;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.AnimalMateGoal;
 import net.minecraft.entity.passive.AnimalEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.predicate.entity.EntityPredicates;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rocks.blackblock.perf.activation_range.EntityCluster;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Prevent animals from breeding too many mobs
@@ -23,6 +29,23 @@ import java.util.Optional;
  */
 @Mixin(AnimalMateGoal.class)
 public class AnimalMateGoalMixin {
+
+    private static final Predicate<Entity> NON_PLAYER_LIVING_ENTITIES = entity -> {
+        if (!entity.isAlive()) {
+            return false;
+        }
+
+        if (entity instanceof LivingEntity livingEntity) {
+
+            if (entity instanceof PlayerEntity) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    };
 
     @Shadow @Final protected AnimalEntity animal;
 
@@ -49,8 +72,8 @@ public class AnimalMateGoalMixin {
 
         if (allowed) {
             Box box = this.animal.getBoundingBox().expand(18);
-            int entities_in_range = this.animal.getWorld().getOtherEntities(this.animal, box).size();
-            allowed = entities_in_range < 60;
+            int entities_in_range = this.animal.getWorld().getOtherEntities(this.animal, box, NON_PLAYER_LIVING_ENTITIES).size();
+            allowed = entities_in_range < 100;
         }
 
         if (!allowed) {
