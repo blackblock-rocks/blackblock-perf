@@ -34,6 +34,7 @@ import rocks.blackblock.perf.activation_range.EntityCluster;
 import rocks.blackblock.perf.distance.AreaPlayerChunkWatchingManager;
 import rocks.blackblock.perf.thread.DynamicThreads;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -383,6 +384,47 @@ public class PerfCommands {
 
         CommandLeaf debug_renderer_leaf = entities_leaf.getChild("debug-renderer");
         debug_renderer_leaf.onExecute(PerfCommands::performDebugRenderer);
+
+        CommandLeaf box_leaf = debug_renderer_leaf.getChild("box");
+        CommandLeaf max_x = box_leaf.getChild("max-x");
+        max_x.setType(IntegerArgumentType.integer());
+        CommandLeaf max_y = max_x.getChild("max-y");
+        max_y.setType(IntegerArgumentType.integer());
+        CommandLeaf max_z = max_y.getChild("max-z");
+        max_z.setType(IntegerArgumentType.integer());
+
+        CommandLeaf min_x = max_z.getChild("min-x");
+        min_x.setType(IntegerArgumentType.integer());
+        CommandLeaf min_y = min_x.getChild("min-y");
+        min_y.setType(IntegerArgumentType.integer());
+        CommandLeaf min_z = min_y.getChild("min-z");
+        min_z.setType(IntegerArgumentType.integer());
+
+        min_z.onExecute(PerfCommands::performCustomBoxDebugRender);
+    }
+
+    private static int performCustomBoxDebugRender(CommandContext<ServerCommandSource> context) {
+
+        var source = context.getSource();
+        var player = source.getPlayer();
+
+        if (player == null) {
+            return 0;
+        }
+
+        int max_x = IntegerArgumentType.getInteger(context, "max-x");
+        int max_y = IntegerArgumentType.getInteger(context, "max-y");
+        int max_z = IntegerArgumentType.getInteger(context, "max-z");
+        int min_x = IntegerArgumentType.getInteger(context, "min-x");
+        int min_y = IntegerArgumentType.getInteger(context, "min-y");
+        int min_z = IntegerArgumentType.getInteger(context, "min-z");
+
+        Box box = new Box(min_x, min_y, min_z, max_x, max_y, max_z);
+        BoxShape debug_box = new BoxShape(box.getMinPos(), box.getMaxPos(), 0x33FF0055, RenderLayer.MIXED, 0x8000FF30, RenderLayer.MIXED, 8f);
+
+        Identifier shapeId = Identifier.of("blackblock", "player_debug_box");
+        DebugShapesPayload.sendToPlayer(player, List.of(new DebugShapesPayload.Set(shapeId, debug_box)));
+        return 1;
     }
 
     private static int performDebugRenderer(CommandContext<ServerCommandSource> context) {
@@ -403,6 +445,7 @@ public class PerfCommands {
         }
 
         DebugShapesPayload.clearAllShapes(player);
+        Set<EntityCluster> super_clusters = new HashSet<>();
 
         int i = 0;
         for (EntityCluster group : groups) {
@@ -410,6 +453,20 @@ public class PerfCommands {
             i++;
             Box box = group.getSmallMergeBox();
             BoxShape debug_box = new BoxShape(box.getMinPos(), box.getMaxPos(), 0x33FF0055, RenderLayer.MIXED, 0xFF00FF00, RenderLayer.MIXED, 4f);
+
+            Identifier shapeId = Identifier.of("blackblock", "debug_box_" + i);
+
+            DebugShapesPayload.sendToPlayer(source.getPlayer(), List.of(new DebugShapesPayload.Set(shapeId, debug_box)));
+
+            EntityCluster super_cluster = group.getSuperCluster();
+            if (super_cluster != null) {
+                super_clusters.add(super_cluster);
+            }
+        }
+
+        for (EntityCluster super_cluster : super_clusters) {
+            Box box = super_cluster.getSmallMergeBox();
+            BoxShape debug_box = new BoxShape(box.getMinPos(), box.getMaxPos(), 0x15FF0040, RenderLayer.MIXED, 0x5050FF00, RenderLayer.MIXED, 2f);
 
             Identifier shapeId = Identifier.of("blackblock", "debug_box_" + i);
 
