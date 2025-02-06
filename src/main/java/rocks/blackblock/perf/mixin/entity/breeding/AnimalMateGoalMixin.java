@@ -5,8 +5,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.AnimalMateGoal;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.Nullable;

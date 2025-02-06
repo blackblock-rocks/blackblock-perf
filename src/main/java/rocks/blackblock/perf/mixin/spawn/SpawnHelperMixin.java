@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import rocks.blackblock.bib.util.BibChunk;
+import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.spawn.CheckBelowCapPerWorld;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
@@ -49,7 +50,7 @@ public abstract class SpawnHelperMixin {
                     target = "Lnet/minecraft/world/SpawnHelper$Info;canSpawn(Lnet/minecraft/entity/SpawnGroup;Lnet/minecraft/util/math/ChunkPos;)Z"
             )
     )
-    private static boolean bb$shouldCancelSpawn(boolean original, ServerWorld world, @Local(ordinal = 0) SpawnGroup category) {
+    private static boolean bb$canSpawn(boolean original, ServerWorld world, @Local(ordinal = 0) SpawnGroup category) {
 
         if (!original) {
             return false;
@@ -66,7 +67,9 @@ public abstract class SpawnHelperMixin {
             }
         }
 
-        return interval > 1 && world.getTime() % interval != 0;
+        var result = !(interval > 1 && world.getTime() % interval != 0);
+
+        return result;
     }
 
     /**
