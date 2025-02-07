@@ -1,13 +1,13 @@
 package rocks.blackblock.perf.mixin.spawn;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
@@ -17,17 +17,12 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import rocks.blackblock.bib.util.BibChunk;
-import rocks.blackblock.bib.util.BibLog;
 import rocks.blackblock.bib.util.BibPerf;
 import rocks.blackblock.perf.spawn.CheckBelowCapPerWorld;
 import rocks.blackblock.perf.spawn.DynamicSpawns;
 
-import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -74,38 +69,39 @@ public abstract class SpawnHelperMixin {
 
     /**
      * Check the caps before actually spawning
-     * @since 0.1.0
      */
-    @Inject(
-            method = "spawn",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/SpawnHelper;spawnEntitiesInChunk(Lnet/minecraft/entity/SpawnGroup;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/chunk/WorldChunk;Lnet/minecraft/world/SpawnHelper$Checker;Lnet/minecraft/world/SpawnHelper$Runner;)V"),
-            locals = LocalCapture.CAPTURE_FAILHARD,
-            cancellable = true
+    @WrapWithCondition(
+        method = "spawn",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/SpawnHelper;spawnEntitiesInChunk(Lnet/minecraft/entity/SpawnGroup;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/chunk/WorldChunk;Lnet/minecraft/world/SpawnHelper$Checker;Lnet/minecraft/world/SpawnHelper$Runner;)V"
+        )
     )
-    private static void preventSpawn(ServerWorld world, WorldChunk chunk, SpawnHelper.Info info, List<SpawnGroup> spawnableGroups, CallbackInfo ci, Profiler profiler, Iterator var5, SpawnGroup spawnGroup) {
+    private static boolean bb$allowSpawn(SpawnGroup spawnGroup, ServerWorld world, WorldChunk chunk, SpawnHelper.Checker checker, SpawnHelper.Runner runner, @Local SpawnHelper.Info info) {
         var cap_info = (CheckBelowCapPerWorld) info;
         var is_below_cap = cap_info.bb$isBelowCap(world, spawnGroup, chunk.getPos());
 
+        // If the spawn cap has already been reached, we can do an early cancel
         if (!is_below_cap) {
-            ci.cancel();
-            return;
+            return false;
         }
 
         var perf_info = world.bb$getPerformanceInfo();
 
         if (perf_info.isBusy()) {
 
-            boolean has_active_players = DynamicSpawns.hasActivePlayersNear(world, chunk.getPos());
-
-            if (has_active_players) {
-                return;
+            // If there are active (non-afk) players nearby, allow the spawn
+            if (DynamicSpawns.hasActivePlayersNear(world, chunk.getPos())) {
+                return true;
             }
 
             // Don't spawn if there are no active players nearby and the server is busy
             if (perf_info.isOverloaded() || perf_info.isRandomlyDisabled()) {
-                ci.cancel();
+                return false;
             }
         }
+
+        return true;
     }
 
     /**
