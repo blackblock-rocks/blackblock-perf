@@ -19,6 +19,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
+import rocks.blackblock.bib.util.BibEntity;
 import rocks.blackblock.bib.util.BibPerf;
 
 import java.util.function.Predicate;
@@ -183,7 +184,7 @@ public class DynamicActivationRange {
             return ZOMBIE_RANGE;
         }
 
-        if (entity instanceof FlyingEntity) {
+        if (BibEntity.canFly(entity)) {
             return FLYING_RANGE;
         }
 
@@ -405,7 +406,7 @@ public class DynamicActivationRange {
         }
 
         if (!(entity instanceof PersistentProjectileEntity projectile)) {
-            if (!entity.isOnGround() && !entity.isInFluid() && !(entity instanceof FlyingEntity || entity instanceof BatEntity)) {
+            if (!entity.isOnGround() && !entity.isInFluid() && !(BibEntity.canFly(entity))) {
                 return 10;
             }
         } else if (!projectile.isInGround()) {
