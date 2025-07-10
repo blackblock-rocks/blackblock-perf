@@ -5,7 +5,6 @@
     "compatibilityLevel": "JAVA_21",
     "mixins": [
         "WorldMixinForAddingPerformanceInfo",
-        "accessors.IThreadedAnvilChunkStorageTicketManager",
         "cache.BlockStateShapeCacheMixin",
         "cache.ChunkMixinForStructureReferences",
         "cache.IdentifierMixin",
