@@ -107,7 +107,7 @@ public class PerfCommands {
     private static int onExecuteChunkWatchInfo(CommandContext<ServerCommandSource> context) {
         var source = context.getSource();
         var player = source.getPlayer();
-        ServerWorld source_world = player.getServerWorld();
+        ServerWorld source_world = player.getWorld();
 
         ServerChunkManager chunkManager = source_world.getChunkManager();
         ServerChunkLoadingManager loadingManager = chunkManager.chunkLoadingManager;
@@ -173,7 +173,7 @@ public class PerfCommands {
         ServerWorld source_world = null;
 
         if (player != null) {
-            source_world = player.getServerWorld();
+            source_world = player.getWorld();
         }
 
         BibText.Lore lore = BibText.createLore();
@@ -202,11 +202,11 @@ public class PerfCommands {
                 int active_chunks = world.getChunkManager().chunkLoadingManager.bb$tickableChunkMap().size();
 
                 MutableText loaded_chunk_text = Text.literal(loaded_chunks + "")
-                        .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Loaded chunks"))))
+                        .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("Loaded chunks"))))
                         .formatted(Formatting.AQUA);
 
                 MutableText active_chunk_text = Text.literal(active_chunks + "")
-                        .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Active chunks"))))
+                        .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("Active chunks"))))
                         .formatted(Formatting.AQUA);
 
                 lore.addLine("Chunks", loaded_chunk_text.append(Text.literal(" / ").formatted(Formatting.GRAY)).append(active_chunk_text));
@@ -298,7 +298,7 @@ public class PerfCommands {
                 return 0;
             }
 
-            World world = player.getServerWorld();
+            World world = player.getWorld();
             var chunk_pos = player.getChunkPos();
 
             BibText.Lore lore = BibText.createLore();
@@ -327,7 +327,7 @@ public class PerfCommands {
                 return 0;
             }
 
-            World world = player.getServerWorld();
+            World world = player.getWorld();
 
             BibText.Lore lore = BibText.createLore();
             lore.add("Inactive entities in world " + world.getRegistryKey().getValue() + " around you (100 block radius):");
@@ -340,7 +340,7 @@ public class PerfCommands {
                     var teleport_str = "/tp " + pos.getX() + " " + pos.getY() + " " + pos.getZ();
 
                     Text texts = Text.literal(pos_str)
-                            .getWithStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, teleport_str))).get(0)
+                            .getWithStyle(Style.EMPTY.withClickEvent(new ClickEvent.RunCommand(teleport_str))).get(0)
                             .copy()
                             .formatted(Formatting.GOLD)
                             .append(Text.literal(" - Tickcount: " + entity.bb$getPotentialTickCount()));
@@ -364,7 +364,7 @@ public class PerfCommands {
                 return 0;
             }
 
-            World world = player.getServerWorld();
+            World world = player.getWorld();
 
             BibText.Lore lore = BibText.createLore();
             lore.add("Activation Range data in world " + world.getRegistryKey().getValue() + ":");
@@ -441,7 +441,7 @@ public class PerfCommands {
             return 0;
         }
 
-        var world = player.getServerWorld();
+        var world = player.getWorld();
         var groups = world.bb$getEntityClusters();
 
         if (groups == null || groups.isEmpty()) {

@@ -197,7 +197,7 @@ public class DynamicSetting {
         hover_text.addLine("Preferred value", Text.literal(this.preferred_value + "").formatted(Formatting.GREEN));
         hover_text.addLine("Performance value", Text.literal(this.performance_value + "").formatted(Formatting.RED));
 
-        HoverEvent tooltip = new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover_text.get());
+        HoverEvent tooltip = new HoverEvent.ShowText(hover_text.get());
         result.setStyle(result.getStyle().withHoverEvent(tooltip));
 
         return result;
