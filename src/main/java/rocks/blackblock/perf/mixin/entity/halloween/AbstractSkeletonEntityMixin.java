@@ -34,9 +34,9 @@ public abstract class AbstractSkeletonEntityMixin extends HostileEntity {
     )
     private boolean bb$optimizeHalloweenCheck(ItemStack instance) {
 
-        if (BibTime.IS_HALLOWEEN && random.nextFloat() < 0.25f) {
-            this.equipStack(EquipmentSlot.HEAD, new ItemStack(random.nextFloat() < 0.1f ? Blocks.JACK_O_LANTERN : Blocks.CARVED_PUMPKIN));
-            this.armorDropChances[EquipmentSlot.HEAD.getEntitySlotId()] = 0.0f;
+        if (BibTime.IS_HALLOWEEN && this.random.nextFloat() < 0.25f) {
+            this.equipStack(EquipmentSlot.HEAD, new ItemStack(this.random.nextFloat() < 0.1f ? Blocks.JACK_O_LANTERN : Blocks.CARVED_PUMPKIN));
+            this.setEquipmentDropChance(EquipmentSlot.HEAD, 0.0f);
         }
 
         return false;

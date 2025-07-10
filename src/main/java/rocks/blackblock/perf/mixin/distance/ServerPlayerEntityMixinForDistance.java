@@ -26,7 +26,7 @@ import rocks.blackblock.perf.interfaces.distances.PlayerSpecificDistance;
 public abstract class ServerPlayerEntityMixinForDistance implements PlayerSpecificDistance {
 
     @Shadow
-    public abstract ServerWorld getServerWorld();
+    public abstract ServerWorld getWorld();
 
     @Unique
     private final ServerPlayerEntity bb$self = (ServerPlayerEntity) (Object) this;
@@ -83,7 +83,7 @@ public abstract class ServerPlayerEntityMixinForDistance implements PlayerSpecif
     @Unique
     @Override
     public int bb$getWorldViewDistance() {
-        return this.getServerWorld().bb$getMaxViewDistance();
+        return this.getWorld().bb$getMaxViewDistance();
     }
 
     @Unique
@@ -127,7 +127,7 @@ public abstract class ServerPlayerEntityMixinForDistance implements PlayerSpecif
         if (is_afk) {
             max_view_distance = 5;
         } else if (max_view_distance > 5) {
-            ServerWorld world = this.getServerWorld();
+            ServerWorld world = this.getWorld();
             var info = world.bb$getPerformanceInfo();
 
             if (info.isOverloaded()) {

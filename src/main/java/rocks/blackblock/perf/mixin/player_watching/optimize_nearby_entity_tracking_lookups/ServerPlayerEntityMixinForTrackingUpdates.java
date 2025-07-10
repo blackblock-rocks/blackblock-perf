@@ -13,8 +13,8 @@ import rocks.blackblock.perf.interfaces.player_watching.TrackingPositionInfo;
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixinForTrackingUpdates extends PlayerEntity implements TrackingPositionInfo {
 
-    public ServerPlayerEntityMixinForTrackingUpdates(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
-        super(world, pos, yaw, gameProfile);
+    public ServerPlayerEntityMixinForTrackingUpdates(World world, GameProfile gameProfile) {
+        super(world, gameProfile);
     }
 
     @Unique

@@ -83,7 +83,7 @@ public abstract class MobEntityMixin extends LivingEntity {
      * @since    0.1.0
      */
     @Inject(
-        method = "readCustomDataFromNbt",
+        method = "readCustomData",
         at = @At(
             value = "RETURN"
         )

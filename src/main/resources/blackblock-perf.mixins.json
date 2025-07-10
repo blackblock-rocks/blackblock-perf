@@ -83,7 +83,6 @@
         "reduce_alloc.NbtLongArrayMixinForReducedAlloc",
         "reduce_alloc.PacketEncryptionManagerMixinForReducedAlloc",
         "reduce_alloc.ServerConfigListMixinForReducedAlloc",
-        "reduce_alloc.TeamVisibilityRuleMixinForReducedAlloc",
         "sign_ticking.AbstractSignBlockMixin",
         "sign_ticking.HangingSignBlockMixin",
         "sign_ticking.SignBlockEntityMixin",

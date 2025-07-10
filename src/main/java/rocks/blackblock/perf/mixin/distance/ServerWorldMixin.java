@@ -106,7 +106,7 @@ public abstract class ServerWorldMixin extends World implements EntityLookupView
 
         this.bb$simulation_distance = simulation_distance;
 
-        this.chunkManager.ticketManager.setSimulationDistance(simulation_distance);
+        this.chunkManager.applySimulationDistance(simulation_distance);
         var update_packet = new SimulationDistanceS2CPacket(simulation_distance);
 
         for (var player :this.getPlayers()) {

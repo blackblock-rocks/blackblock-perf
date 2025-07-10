@@ -144,6 +144,6 @@ public abstract class SpawnHelperMixin {
         if (squaredDistance <= 576.0) {
             return false;
         }
-        return Objects.equals(new ChunkPos(pos), chunk.getPos()) || world.shouldTick(pos);
+        return Objects.equals(new ChunkPos(pos), chunk.getPos()) || world.shouldTickBlockAt(pos);
     }
 }
